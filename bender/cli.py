@@ -24,7 +24,7 @@ def cli():
 
 @cli.command('config')
 def cli_config():
-    print('Location: {}'.format(config_file))
+    print('{}'.format(config_file))
 
 
 @cli.group('jira')
@@ -36,8 +36,8 @@ def cli_config():
               help='connection password')
 @click.pass_context
 def jira_cli(ctx, server, username, password):
-    print('server: {}'.format(server))
-    print('username: {}'.format(username))
+    print('# {}'.format(server))
+    #print('username: {}'.format(username))
     ctx.obj = {
         'server': server,
         'auth': (username, password)
@@ -50,9 +50,10 @@ def jira_status(ctx):
     """Jira application status"""
     server = ctx.obj.get('server')
     url = '{server}{api}'.format(server=server, api=jira_status_path)
-    print('url: {}'.format(url))
+    #print('url: {}'.format(url))
     res = requests.get(url)
-    print('status: {}'.format(res.json()))
+    #print('status: {}'.format(res.json()))
+    print(json.dumps(res.json(), indent=2))
 
 
 # @jira_cli.command('settings')
@@ -73,7 +74,7 @@ def jira_info(ctx):
     server = ctx.obj.get('server')
     url = '{server}{api}'.format(server=server, api=jira_serverinfo_path)
     res = requests.get(url)
-    print(json.dumps(res.json(), indent=4))
+    print(json.dumps(res.json(), indent=2))
 
 
 def connect(username, password):
