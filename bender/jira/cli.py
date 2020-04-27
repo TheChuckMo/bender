@@ -19,7 +19,8 @@ jira_application_properties_path = "/rest/api/2/application-properties"
 @click.option('--password', required=True, show_default=False, default=config.get('account', 'password', fallback=None),
               help='connection password')
 @click.pass_context
-def jira_cli(ctx, server, username, password):
+def cli(ctx, server, username, password):
+    """Manage Atlassian Jira Server"""
     print('# {}'.format(server))
     #print('username: {}'.format(username))
     ctx.obj = {
@@ -28,7 +29,7 @@ def jira_cli(ctx, server, username, password):
     }
 
 
-@jira_cli.command('status')
+@cli.command('status')
 @click.pass_context
 def jira_status(ctx):
     """Jira application status"""
@@ -51,7 +52,7 @@ def jira_status(ctx):
 #     print('code: {}'.format(res.status_code))
 
 
-@jira_cli.command('info')
+@cli.command('info')
 @click.pass_context
 def jira_info(ctx):
     """Jira server information"""

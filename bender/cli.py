@@ -1,22 +1,17 @@
 import click
-from .jira.cli import jira_cli
 from .utils import config, config_file
-
-
-# API paths
-jira_status_path = "/status"
-jira_settings_path = "/rest/api/2/settings"
-jira_serverinfo_path = "/rest/api/2/serverInfo"
-jira_application_properties_path = "/rest/api/2/application-properties"
+from .jira.cli import cli as jira_cli
 
 
 @click.group('cli')
 def cli():
+    """Bending Atlassian to its will since 2020!"""
     pass
 
 
 @cli.command('config')
 def cli_config():
+    """show configuration file"""
     print('{}'.format(config_file))
 
 
