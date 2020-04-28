@@ -11,6 +11,7 @@ jira_serverinfo_path = "/rest/api/2/serverInfo"
 jira_application_properties_path = "/rest/api/2/application-properties"
 jira_cluster_nodes_path = "/rest/api/2/cluster/nodes"
 jira_cluster_state_path = "/rest/api/2/cluster/zdu/state"
+jira_configuration_path = "/rest/api/2/configuration"
 
 
 @click.group('jira')
@@ -67,6 +68,17 @@ def jira_cluster(ctx, item):
     url = '{server}{api}'.format(server=server, api=api_path)
     res = requests.get(url, auth=auth)
     print('{}'.format(res.status_code))
+    print(json.dumps(res.json(), indent=2))
+
+
+@cli.command('configuration')
+@click.pass_context
+def jira_configuration(ctx):
+    """Jira server information"""
+    server = ctx.obj.get('server')
+    auth = ctx.obj.get('auth')
+    url = '{server}{api}'.format(server=server, api=jira_configuration_path)
+    res = requests.get(url, auth=auth)
     print(json.dumps(res.json(), indent=2))
 
 
