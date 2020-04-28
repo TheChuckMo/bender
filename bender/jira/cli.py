@@ -1,8 +1,8 @@
 import click
 import requests
 import json
-from ..utils import config
-
+import yaml
+from ..utils import config, AppConnect
 
 # API paths
 jira_status_path = "/status"
@@ -21,13 +21,14 @@ jira_configuration_path = "/rest/api/2/configuration"
               help="connection username")
 @click.option('--password', required=True, show_default=False, default=config.get('account', 'password', fallback=None),
               help='connection password')
+@click.option('--output', '-o', default='yaml', type=click.Choice(['yaml', 'json']), help="output format")
 @click.pass_context
-def cli(ctx, server, username, password):
+def cli(ctx, server, username, password, output):
     """Manage Atlassian Jira Server"""
     print('# {}'.format(server))
     ctx.obj = {
-        'server': server,
-        'auth': (username, password)
+        'connect': AppConnect(server, username=username, password=password),
+        'output': output
     }
 
 
@@ -35,10 +36,12 @@ def cli(ctx, server, username, password):
 @click.pass_context
 def jira_status(ctx):
     """Jira application status"""
-    server = ctx.obj.get('server')
-    url = '{server}{api}'.format(server=server, api=jira_status_path)
-    res = requests.get(url)
-    print(json.dumps(res.json(), indent=2))
+    _res = ctx.obj['connect'].get_json(jira_status_path)
+
+    if ctx.obj['output'] is 'json':
+        print(json.dumps(_res))
+    else:
+        print(yaml.safe_dump(_res))
 
 
 # @cli.command('settings')
@@ -58,28 +61,29 @@ def jira_status(ctx):
 @click.pass_context
 def jira_cluster(ctx, item):
     """Jira cluster nodes"""
-    if item == 'state':
-        api_path=jira_cluster_state_path
+    if item is 'state':
+        api_path = jira_cluster_state_path
     else:
-        api_path=jira_cluster_nodes_path
+        api_path = jira_cluster_nodes_path
 
-    server = ctx.obj.get('server')
-    auth = ctx.obj.get('auth')
-    url = '{server}{api}'.format(server=server, api=api_path)
-    res = requests.get(url, auth=auth)
-    print('{}'.format(res.status_code))
-    print(json.dumps(res.json(), indent=2))
+    _res = ctx.obj['connect'].get_json(api_path)
+
+    if ctx.obj['output'] is 'json':
+        print(json.dumps(_res))
+    else:
+        print(yaml.safe_dump(_res))
 
 
 @cli.command('configuration')
 @click.pass_context
 def jira_configuration(ctx):
     """Jira server information"""
-    server = ctx.obj.get('server')
-    auth = ctx.obj.get('auth')
-    url = '{server}{api}'.format(server=server, api=jira_configuration_path)
-    res = requests.get(url, auth=auth)
-    print(json.dumps(res.json(), indent=2))
+    _res = ctx.obj['connect'].get_json(jira_configuration_path)
+
+    if ctx.obj['output'] is 'json':
+        print(json.dumps(_res))
+    else:
+        print(yaml.safe_dump(_res))
 
 
 @cli.command('info')
@@ -90,3 +94,10 @@ def jira_info(ctx):
     url = '{server}{api}'.format(server=server, api=jira_serverinfo_path)
     res = requests.get(url)
     print(json.dumps(res.json(), indent=2))
+
+    _res = ctx.obj['connect'].get_json(jira_serverinfo_path)
+
+    if ctx.obj['output'] is 'json':
+        print(json.dumps(_res))
+    else:
+        print(yaml.safe_dump(_res))
