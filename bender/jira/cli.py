@@ -9,6 +9,8 @@ jira_status_path = "/status"
 jira_settings_path = "/rest/api/2/settings"
 jira_serverinfo_path = "/rest/api/2/serverInfo"
 jira_application_properties_path = "/rest/api/2/application-properties"
+jira_cluster_nodes_path = "/rest/api/2/cluster/nodes"
+jira_cluster_state_path = "/rest/api/2/cluster/zdu/state"
 
 
 @click.group('jira')
@@ -22,7 +24,6 @@ jira_application_properties_path = "/rest/api/2/application-properties"
 def cli(ctx, server, username, password):
     """Manage Atlassian Jira Server"""
     print('# {}'.format(server))
-    #print('username: {}'.format(username))
     ctx.obj = {
         'server': server,
         'auth': (username, password)
@@ -35,21 +36,38 @@ def jira_status(ctx):
     """Jira application status"""
     server = ctx.obj.get('server')
     url = '{server}{api}'.format(server=server, api=jira_status_path)
-    #print('url: {}'.format(url))
     res = requests.get(url)
-    #print('status: {}'.format(res.json()))
     print(json.dumps(res.json(), indent=2))
 
 
-# @jira_cli.command('settings')
+# @cli.command('settings')
 # @click.pass_context
 # def jira_settings(ctx):
-#     session = ctx.obj.get('session')
+#     """Jira application settings"""
 #     server = ctx.obj.get('server')
+#     auth = ctx.obj.get('auth')
 #     url = '{server}{api}'.format(server=server, api=jira_settings_path)
-#     print('url: {}'.format(url))
-#     res = session.get(url)
-#     print('code: {}'.format(res.status_code))
+#     res = requests.get(url, auth=auth)
+#     print('{}'.format(res.status_code))
+#     print(json.dumps(res.json(), indent=2))
+
+
+@cli.command('cluster')
+@click.argument('item', type=click.Choice(['state', 'nodes']), default='state')
+@click.pass_context
+def jira_cluster(ctx, item):
+    """Jira cluster nodes"""
+    if item == 'state':
+        api_path=jira_cluster_state_path
+    else:
+        api_path=jira_cluster_nodes_path
+
+    server = ctx.obj.get('server')
+    auth = ctx.obj.get('auth')
+    url = '{server}{api}'.format(server=server, api=api_path)
+    res = requests.get(url, auth=auth)
+    print('{}'.format(res.status_code))
+    print(json.dumps(res.json(), indent=2))
 
 
 @cli.command('info')
