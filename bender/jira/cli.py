@@ -60,19 +60,26 @@ def cli(ctx, server, username, password, output):
 @click.option('--view', is_flag=True, default=False, help="View Jira session.")
 @click.option('--login', is_flag=True, default=False, help="login to Jira session.")
 @click.option('--logout', is_flag=True, default=False, help="logout of Jira session and delete cookies.")
-@click.option('--websudo', is_flag=True, default=False, help="Grant websudo.")
+@click.option('--websudo', is_flag=True, default=False, help="Grant websudo access.")
+@click.option('--release', is_flag=True, default=False, help="Release websudo access.")
 @click.pass_context
-def jira_session(ctx, delete, cookies, view, login, logout, websudo):
+def jira_session(ctx, delete, cookies, view, login, logout, websudo, release):
     """Jira session."""
     #click.echo(click.format_filename('{}'.format(config['jira'].get('cookie_store'))))
+
+    if release:
+        _res = ctx.obj['connect'].delete(jira_websudo_path, headers=no_check_headers)
+        write_out(_res, ctx.obj['output'])
 
     if logout:
         _res = ctx.obj['connect'].delete(jira_session_path, headers=json_headers)
         write_out(_res, ctx.obj['output'])
-        os.unlink(config['jira'].get('cookie_store'))
+        delete = True
+        #os.unlink(config['jira'].get('cookie_store'))
 
     if delete:
-        os.unlink(config['jira'].get('cookie_store'))
+        if os.unlink(config['jira'].get('cookie_store')):
+            click.secho('cookie store deleted.', fg='blue')
 
     if login:
         data = {
@@ -88,7 +95,7 @@ def jira_session(ctx, delete, cookies, view, login, logout, websudo):
             'webSudoIsPost': "False"
         }
         _res = ctx.obj['connect'].post(jira_websudo_jspa_path, data=data, headers=form_headers)
-        write_out(_res)
+        write_out(_res, ctx.obj['output'])
 
     if view:
         _res = ctx.obj['connect'].get_json(jira_session_path, headers=json_headers)
@@ -113,9 +120,6 @@ def jira_websudo(ctx, action):
             'webSudoIsPost': "False"
         }
         _res = ctx.obj['connect'].post(jira_websudo_jspa_path, data=data, headers=form_headers)
-
-    if action is 'release':
-        _res = ctx.obj['connect'].delete(jira_websudo_path)
 
     write_out(data=_res, output='raw')
 
