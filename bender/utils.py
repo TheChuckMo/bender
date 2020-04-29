@@ -1,22 +1,32 @@
-import requests
-import pickle
-import click
-import configparser
-import os
 import base64
+import configparser
+import json
+import os
+import pickle
 from urllib.parse import urljoin
 
+import click
+import requests
+import yaml
 
-# read configuration file
+"""configuration"""
 config = configparser.ConfigParser()
 config_file = os.path.join(click.get_app_dir('bender'), 'config.ini')
 config.read(config_file)
-# print('config file: {}'.format(config_fi
 
-cookie_store = config.get('settings', 'cookie_store', fallback=os.path.join(click.get_app_dir('bender'), '.cookie_store.pickle'))
+cookie_store = config.get('settings', 'cookie_store',
+                          fallback=os.path.join(click.get_app_dir('bender'), '.cookies.dat'))
 
 
-class AppConnect():
+def write_out(data: [dict, list], output: str = 'yaml'):
+    if output is 'json':
+        print(json.dumps(data, indent=2, sort_keys=True))
+    else:
+        print(yaml.dump(data, default_flow_style=False))
+
+
+class AppConnect:
+    """App Connection"""
     server: str
     username: str
     _password: str
@@ -28,11 +38,11 @@ class AppConnect():
         'Accept': 'application/json'
     }
     form_headers = {
-        'Content-Type': "application/x-www-form-urlencoded; charset=UTF-8",
-        'X-Atlassian-Token': "no-check"
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Atlassian-Token': 'no-check'
     }
     no_check_headers = {
-        'X-Atlassian-Token': "no-check"
+        'X-Atlassian-Token': 'no-check'
     }
 
     def __init__(self, server: str, username: str = None, password: str = None, session: requests.session = None):
@@ -46,6 +56,8 @@ class AppConnect():
         if username and password:
             self.session.auth = (username, password)
 
+        self.reload_cookies()
+
     @property
     def password(self):
         return base64.decodebytes(self._password).decode()
@@ -54,16 +66,47 @@ class AppConnect():
     def password(self, password: str):
         self._password = base64.encodebytes(password.encode())
 
-    def get_json(self, api):
+    def get_json(self, api, params: dict = None, **kwargs):
         url = urljoin(self.server, api)
         self.session.headers.update(self.json_headers)
 
-        self._response = self.session.get(url)
+        self._response = self.session.get(url, params=params, **kwargs)
+
+        self.cache_cookies()
 
         try:
             return self._response.json()
         except:
+            # TODO: capture known status codes!
+            # TODO: move raise_for_status to a finally clause
             self._response.raise_for_status()
+
+    def post(self, api: str, params: dict = None, data: dict = None, **kwargs):
+        url = urljoin(self.server, api)
+        self.session.headers.update(self.json_headers)
+
+        self._response = self.session.post(url, params=params, data=data, **kwargs)
+
+        self.cache_cookies()
+
+        try:
+            return self._response.json()
+        except:
+            # TODO: capture known status codes!
+            # TODO: move raise_for_status to a finally clause
+            self._response.raise_for_status()
+
+    def cache_cookies(self):
+        """cache cookies to file"""
+        if self.session.cookies:
+            with open(cookie_store, 'wb') as f:
+                pickle.dump(self.session.cookies, f)
+
+    def reload_cookies(self):
+        """reload cookies from file"""
+        if os.path.isfile(cookie_store):
+            with open(cookie_store, 'rb') as f:
+                self.session.cookies = pickle.load(f)
 
 
 def connect(username, password):

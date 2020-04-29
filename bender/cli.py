@@ -1,6 +1,7 @@
 import click
-from .utils import config, config_file
+
 from .jira.cli import cli as jira_cli
+from .utils import config_file
 
 
 @click.group('cli')
@@ -16,4 +17,3 @@ def cli_config():
 
 
 cli.add_command(jira_cli)
-

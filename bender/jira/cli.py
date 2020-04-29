@@ -1,8 +1,9 @@
 import click
-import requests
-import json
-import yaml
-from ..utils import config, AppConnect
+from ..utils import config, AppConnect, write_out
+
+# import requests
+# import yaml
+# import json
 
 # API paths
 jira_status_path = "/status"
@@ -12,6 +13,9 @@ jira_application_properties_path = "/rest/api/2/application-properties"
 jira_cluster_nodes_path = "/rest/api/2/cluster/nodes"
 jira_cluster_state_path = "/rest/api/2/cluster/zdu/state"
 jira_configuration_path = "/rest/api/2/configuration"
+jira_application_properties_advanced_path = "/rest/api/2/application-properties/advanced-settings"
+jira_index_path = "/rest/api/2/index/summary"
+jira_reindex_path = "/rest/api/2/reindex"
 
 
 @click.group('jira')
@@ -32,16 +36,53 @@ def cli(ctx, server, username, password, output):
     }
 
 
+@cli.command('index')
+@click.argument('action', type=click.Choice(['summary', 'reindex', 'status']), default='summary')
+@click.option('--comments/--no-comments', default=True, help="reindex comments")
+@click.option('--history/--no-history', default=True, help="reindex change history")
+@click.option('--worklogs/--no-worklogs', default=True, help="reindex work logs")
+@click.option('--taskid', default=None, help="reindex task id")
+@click.pass_context
+def jira_index(ctx, action, comments, history, worklogs, taskid):
+    """Jira index status
+
+    :argument
+
+        summary   show index summary
+
+        reindex   start a reindex
+
+        status    status of last reindex or taskid
+
+    """
+    if action is 'reindex':
+        params = {
+            'indexComments': comments,
+            'indexChangeHistory': history,
+            'indexWorklogs': worklogs,
+            'type': 'BACKGROUND_PREFERRED'
+        }
+        _res = ctx.obj['connect'].post(jira_reindex_path, params=params)
+    elif action is 'status' and taskid is not None:
+        params = {
+            'taskId': taskid
+        }
+        _res = ctx.obj['connect'].get_json(jira_reindex_path, params=params)
+    elif action is 'status':
+        _res = ctx.obj['connect'].get_json(jira_reindex_path)
+    else:
+        _res = ctx.obj['connect'].get_json(jira_index_path)
+
+    write_out(data=_res, output=ctx.obj['output'])
+
+
 @cli.command('status')
 @click.pass_context
 def jira_status(ctx):
     """Jira application status"""
     _res = ctx.obj['connect'].get_json(jira_status_path)
 
-    if ctx.obj['output'] is 'json':
-        print(json.dumps(_res))
-    else:
-        print(yaml.safe_dump(_res))
+    write_out(data=_res, output=ctx.obj['output'])
 
 
 # @cli.command('settings')
@@ -68,10 +109,7 @@ def jira_cluster(ctx, item):
 
     _res = ctx.obj['connect'].get_json(api_path)
 
-    if ctx.obj['output'] is 'json':
-        print(json.dumps(_res))
-    else:
-        print(yaml.safe_dump(_res))
+    write_out(data=_res, output=ctx.obj['output'])
 
 
 @cli.command('configuration')
@@ -80,24 +118,13 @@ def jira_configuration(ctx):
     """Jira server information"""
     _res = ctx.obj['connect'].get_json(jira_configuration_path)
 
-    if ctx.obj['output'] is 'json':
-        print(json.dumps(_res))
-    else:
-        print(yaml.safe_dump(_res))
+    write_out(data=_res, output=ctx.obj['output'])
 
 
-@cli.command('info')
+@cli.command('serverinfo')
 @click.pass_context
-def jira_info(ctx):
+def jira_serverinfo(ctx):
     """Jira server information"""
-    server = ctx.obj.get('server')
-    url = '{server}{api}'.format(server=server, api=jira_serverinfo_path)
-    res = requests.get(url)
-    print(json.dumps(res.json(), indent=2))
-
     _res = ctx.obj['connect'].get_json(jira_serverinfo_path)
 
-    if ctx.obj['output'] is 'json':
-        print(json.dumps(_res))
-    else:
-        print(yaml.safe_dump(_res))
+    write_out(data=_res, output=ctx.obj['output'])
