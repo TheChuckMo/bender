@@ -4,24 +4,62 @@ Bending Atlassian to its will since 2020!
 
 ## Install
 
-pip3 install --user git+https://itgcode.ohsu.edu/scm/~morelanc/bender.git#egg=bender
+*stable*
 
-w/ssh uri: git+ssh://itgcode.ohsu.edu/scm/~morelanc/bender.git#egg=bender
+    pip3 install --user git+https://itgcode.ohsu.edu/scm/~morelanc/bender.git#egg=bender
 
-## configuration
+*upgrade stable*
 
-- show config file `bender config`
+    pip3 install --user --upgrade git+https://itgcode.ohsu.edu/scm/~morelanc/bender.git#egg=bender
+
+*ssh git uri*
+
+    git+ssh://itgcode.ohsu.edu/scm/~morelanc/bender.git#egg=bender
+
+## Config file
+
+- create config file with defaults
+  - `bender config --create`
+- edit config file with default editor
+  - `bender config --edit`
+- delete config file
+  - `bender config --delete`
+- rebuild config file
+  - `bender --delete --create --edit`
 
 ```ini
-[account]
+[jira]
 server = https://jiraurl:port
 username = user
 # password = 
 ```
 
+## Command completion
+
+Setup command completion for your shell.
+
+For *bash* add to ~/.bashrc
+
+	eval "$(_BENDER_COMPLETE=source_bash bender)"
+
+For *zsh* add to ~/.zshrc:
+
+	eval "$(_BENDER_COMPLETE=source_zsh bender)"
+
 ## Development
 
-- clone repository
-- cd into cloned repo
+*requirements*
+
+- Python 3 w/setuptools
+- [Python Poetry](https://python-poetry.org/)
+
+*dev install w/poetry*
+
 - `poetry install`
+
+*build w/poetry*
+
+- `poetry version [major,minor,patch]
+- `poetry build`
+- `git commit ...;git push`
 
