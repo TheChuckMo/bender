@@ -1,9 +1,6 @@
 import click
-from ..utils import config, AppConnect, write_out
 
-# import requests
-# import yaml
-# import json
+from ..utils import config, AppConnect, write_out
 
 # API paths
 jira_status_path = "/status"
@@ -19,21 +16,50 @@ jira_reindex_path = "/rest/api/2/reindex"
 
 
 @click.group('jira')
-@click.option('--server', required=True, default=config.get('account', 'server', fallback=None),
-              help='connection server')
-@click.option('--username', required=True, default=config.get('account', 'username', fallback=None),
+@click.option('--server', required=True, default=config['account'].get('server'), help='connection server')
+@click.option('--username', required=True, default=config['account'].get('username', fallback=None),
               help="connection username")
-@click.option('--password', required=True, show_default=False, default=config.get('account', 'password', fallback=None),
+@click.option('--password', required=True, show_default=False, default=config['account'].get('password', fallback=None),
               help='connection password')
-@click.option('--output', '-o', default='yaml', type=click.Choice(['yaml', 'json']), help="output format")
+@click.option('--output', '--out', default=config['output'].get('default_output'), type=click.Choice(['yaml', 'json']),
+              help="output format")
 @click.pass_context
 def cli(ctx, server, username, password, output):
-    """Manage Atlassian Jira Server"""
+    """Jira Server administration."""
     print('# {}'.format(server))
     ctx.obj = {
         'connect': AppConnect(server, username=username, password=password),
         'output': output
     }
+
+
+@cli.command('properties')
+@click.argument('action', type=click.Choice(['view', 'set', 'get']), default='view')
+@click.option('--advanced', '--ad', default=False, help="view advanced application-properties.")
+@click.option('--id', 'propid', default=None, type=str, help="application-property id for get and set.")
+@click.option('--value', default=None, type=str, help="application-property value for set.")
+@click.pass_context
+def jira_properties(ctx, action, advanced, propid, value):
+    """Jira application-properties.
+
+    \b
+    view    (default) view application properties.
+    set     set a property with --id and --value.
+    get     get a property with --id.
+    """
+    if action is 'view':
+        if advanced:
+            _res = ctx.obj['connect'].get_json(jira_application_properties_advanced_path)
+        else:
+            _res = ctx.obj['connect'].get_json(jira_application_properties_path)
+
+    if action is 'get':
+        if not propid:
+            click.secho('--id <application-property id> required.', fg='red', blink=True, bold=True, err=True)
+            exit(1)
+        _res = ctx.obj['connect'].get_json(f'{jira_application_properties_path}/{propid}')
+
+    write_out(data=_res, output=ctx.obj['output'])
 
 
 @cli.command('index')
@@ -44,16 +70,12 @@ def cli(ctx, server, username, password, output):
 @click.option('--taskid', default=None, help="reindex task id")
 @click.pass_context
 def jira_index(ctx, action, comments, history, worklogs, taskid):
-    """Jira index status
+    """Jira index.
 
-    :argument
-
-        summary   show index summary
-
-        reindex   start a reindex
-
-        status    status of last reindex or taskid
-
+    \b
+    summary     (default) show index summary
+    reindex     start a reindex
+    status      status of reindex, opt: --taskid
     """
     if action is 'reindex':
         params = {
@@ -79,7 +101,7 @@ def jira_index(ctx, action, comments, history, worklogs, taskid):
 @cli.command('status')
 @click.pass_context
 def jira_status(ctx):
-    """Jira application status"""
+    """Jira application status."""
     _res = ctx.obj['connect'].get_json(jira_status_path)
 
     write_out(data=_res, output=ctx.obj['output'])
@@ -101,7 +123,12 @@ def jira_status(ctx):
 @click.argument('item', type=click.Choice(['state', 'nodes']), default='state')
 @click.pass_context
 def jira_cluster(ctx, item):
-    """Jira cluster nodes"""
+    """Jira cluster.
+
+    \b
+    state   (default) cluster state
+    nodes   cluster nodes state
+    """
     if item is 'state':
         api_path = jira_cluster_state_path
     else:
@@ -115,7 +142,7 @@ def jira_cluster(ctx, item):
 @cli.command('configuration')
 @click.pass_context
 def jira_configuration(ctx):
-    """Jira server information"""
+    """Jira server configuration."""
     _res = ctx.obj['connect'].get_json(jira_configuration_path)
 
     write_out(data=_res, output=ctx.obj['output'])
@@ -124,7 +151,7 @@ def jira_configuration(ctx):
 @cli.command('serverinfo')
 @click.pass_context
 def jira_serverinfo(ctx):
-    """Jira server information"""
+    """Jira server information."""
     _res = ctx.obj['connect'].get_json(jira_serverinfo_path)
 
     write_out(data=_res, output=ctx.obj['output'])

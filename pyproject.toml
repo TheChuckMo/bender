@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "bender"
-version = "0.2.0"
-description = "cli tool"
+version = "0.2.4"
+description = "CLI admin interface for Atlassian Jira"
 authors = ["Charles Moreland <morelanc@ohsu.edu>"]
 license = "MIT"
 
@@ -10,6 +10,7 @@ python = "^3.7"
 click = "^7.1.1"
 requests = "^2.23.0"
 pyyaml = "^5.3.1"
+colorama = "^0.4.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"
