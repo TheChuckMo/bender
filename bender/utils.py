@@ -5,6 +5,7 @@ import os
 import pickle
 from urllib.parse import urljoin
 from requests.exceptions import ConnectionError
+from json.decoder import JSONDecodeError
 
 import click
 import requests
@@ -15,11 +16,20 @@ from bender import APP_NAME
 
 """configuration"""
 config_defaults = {
-    'account': {
+    'jira': {
         'server': 'http://localhost:8080',
+        'cookie_store': f'{os.path.join(click.get_app_dir(APP_NAME), ".jira.cookies")}'
     },
-    'session': {
-        'cookie_store': f'{os.path.join(click.get_app_dir(APP_NAME), ".cookies.dat")}'
+    'confluence': {
+        'server': 'http://localhost:8000',
+        'cookie_store': f'{os.path.join(click.get_app_dir(APP_NAME), ".confluence.cookies")}'
+    },
+    'crowd': {
+        'server': 'http://localhost:8095',
+        'cookie_store': f'{os.path.join(click.get_app_dir(APP_NAME), ".crowd.cookies")}'
+    },
+    'DEFAULTS': {
+        'cookie_store': f'{os.path.join(click.get_app_dir(APP_NAME), ".cookies")}'
     },
     'output': {
         'json_indent': '2',
@@ -41,7 +51,7 @@ def write_out(data: [dict, list], output: str = None):
 
     if output is 'raw':
         click.echo(data)
-        
+
     if output is 'json':
         click.echo(json.dumps(data, indent=config['output'].getint('json_indent'),
                               sort_keys=config['output'].getboolean('json_sort_keys')))
@@ -56,6 +66,7 @@ class AppConnect:
     _password: str
     session: requests.session
     _response: requests
+    cookie_store: os.path = f'{os.path.join(click.get_app_dir(APP_NAME), ".cookies.dat")}'
 
     json_headers = {
         'Content-Type': 'application/json',
@@ -69,16 +80,29 @@ class AppConnect:
         'X-Atlassian-Token': 'no-check'
     }
 
-    def __init__(self, server: str, username: str = None, password: str = None, session: requests.session = None):
+    def __init__(self, server: str, username: str = None, password: str = None, cookie_store: os.path = None,
+                 session: requests.session = None, headers: dict = None):
         self.server = server
-        self.username = username
-        self.password = password
 
-        if session is None:
+        if session:
+            self.session = session
+        else:
             self.session = requests.session()
+
+        if username:
+            self.username = username
+
+        if password:
+            self.password = password
+
+        if cookie_store:
+            self.cookie_store = cookie_store
 
         if username and password:
             self.session.auth = (username, password)
+
+        if headers:
+            self.session.headers.update(headers)
 
         self.reload_cookies()
 
@@ -90,14 +114,55 @@ class AppConnect:
     def password(self, password: str):
         self._password = base64.encodebytes(password.encode())
 
-    def get_json(self, api, params: dict = None, data: dict = None, **kwargs):
+    def delete(self, api, headers: dict = None, **kwargs):
+        url = urljoin(self.server, api)
+
+        self.session.headers.update(self.no_check_headers)
+
+        try:
+            self._response = self.session.delete(url, headers=headers, **kwargs)
+        except ConnectionError:
+            return {'error': f'failure connecting to {self.server}.'}
+
+        if self._response.ok:
+            self.cache_cookies()
+        resp = {
+            'status_code': self._response.status_code,
+            'url': self._response.url,
+            'reason': self._response.reason
+        }
+
+        return resp
+
+    # def get_form(self, api, params: dict = None, data: dict = None, **kwargs):
+    #     url = urljoin(self.server, api)
+    #     resp: dict = {}
+    #
+    #     self.session.headers.update(self.form_headers)
+    #
+    #     try:
+    #         self._response = self.session.get(url, params=params, data=data, **kwargs)
+    #     except ConnectionError:
+    #         return {'error': f'failure connecting to {self.server}.'}
+    #
+    #     if self._response.ok:
+    #         self.cache_cookies()
+    #         resp = self._response.text
+    #     else:
+    #         resp = {
+    #             'status_code': self._response.status_code,
+    #             'url': self._response.url,
+    #             'reason': self._response.reason
+    #         }
+    #
+    #     return resp
+
+    def get_json(self, api, params: dict = None, data: dict = None, headers: dict = None, **kwargs):
         url = urljoin(self.server, api)
         resp: dict = {}
 
-        self.session.headers.update(self.json_headers)
-
         try:
-            self._response = self.session.get(url, params=params, data=data, **kwargs)
+            self._response = self.session.get(url, params=params, data=data, headers=headers, **kwargs)
         except ConnectionError:
             return {'error': f'failure connecting to {self.server}.'}
 
@@ -113,42 +178,73 @@ class AppConnect:
 
         return resp
 
-    def put_json(self, api: str, params: dict = None, data: dict = None, **kwargs):
+    # def put_json(self, api: str, params: dict = None, data: dict = None, headers: dict = None, **kwargs):
+    #     url = urljoin(self.server, api)
+    #     resp: dict = {}
+    #     self.session.headers.update(self.json_headers)
+    #
+    #     try:
+    #         self._response = self.session.post(url, params=params, data=data, headers=headers, **kwargs)
+    #     except ConnectionError:
+    #         return {'error': f'failure connecting to {self.server}.'}
+    #
+    #     if self._response.ok:
+    #         self.cache_cookies()
+    #         resp = self._response.json()
+    #     else:
+    #         resp = {
+    #             'status_code': self._response.status_code,
+    #             'url': self._response.url,
+    #             'reason': self._response.reason,
+    #         }
+    #
+    #     return resp
+
+    # def post_form(self, api: str, params: dict = None, data: dict = None, **kwargs):
+    #     url = urljoin(self.server, api)
+    #     resp: dict = {}
+    #     self.session.headers.update(self.form_headers)
+    #
+    #     try:
+    #         self._response = self.session.post(url, params=params, data=data, **kwargs)
+    #     except ConnectionError:
+    #         return {'error': f'failure connecting to {self.server}.'}
+    #
+    #     if self._response.ok:
+    #         self.cache_cookies()
+    #         resp = {
+    #             'status_code': self._response.status_code,
+    #             'url': self._response.url,
+    #             'reason': self._response.reason,
+    #             'text': self._response.text
+    #         }
+    #     else:
+    #         resp = {
+    #             'status_code': self._response.status_code,
+    #             'url': self._response.url,
+    #             'reason': self._response.reason
+    #         }
+    #
+    #     return resp
+
+    def post(self, api: str, params: dict = None, data: dict = None, json: dict = None, headers: dict = None, **kwargs):
         url = urljoin(self.server, api)
         resp: dict = {}
-        self.session.headers.update(self.json_headers)
 
         try:
-            self._response = self.session.post(url, params=params, json=data, **kwargs)
+            self._response = self.session.post(url, params=params, data=data, json=json, headers=headers, **kwargs)
         except ConnectionError:
             return {'error': f'failure connecting to {self.server}.'}
 
         if self._response.ok:
             self.cache_cookies()
-            resp = self._response.json()
-        else:
-            resp = {
-                'status_code': self._response.status_code,
-                'url': self._response.url,
-                'reason': self._response.reason,
-            }
 
-        return resp
+            try:
+                resp = self._response.json()
+            except JSONDecodeError:
+                pass
 
-    def post(self, api: str, params: dict = None, data: dict = None, **kwargs):
-        url = urljoin(self.server, api)
-        resp: dict = {}
-        self.session.headers.update(self.json_headers)
-
-        try:
-            self._response = self.session.post(url, params=params, data=data, **kwargs)
-        except ConnectionError:
-            return {'error': f'failure connecting to {self.server}.'}
-
-        if self._response.ok:
-            self.cache_cookies()
-            resp = self._response.json()
-        else:
+        if not resp:
             resp = {
                 'status_code': self._response.status_code,
                 'url': self._response.url,
@@ -160,11 +256,11 @@ class AppConnect:
     def cache_cookies(self):
         """cache cookies to file"""
         if self.session.cookies:
-            with open(config['session'].get('cookie_store'), 'wb') as f:
+            with open(self.cookie_store, 'wb') as f:
                 pickle.dump(self.session.cookies, f)
 
     def reload_cookies(self):
         """reload cookies from file"""
-        if os.path.isfile(config['session'].get('cookie_store')):
-            with open(config['session'].get('cookie_store'), 'rb') as f:
+        if os.path.isfile(self.cookie_store):
+            with open(self.cookie_store, 'rb') as f:
                 self.session.cookies = pickle.load(f)

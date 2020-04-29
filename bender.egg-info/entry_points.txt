@@ -1,0 +1,4 @@
+[console_scripts]
+bender = bender.cli:cli
+jbender = bender.jira.cli:cli
+

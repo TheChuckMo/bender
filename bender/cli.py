@@ -4,7 +4,7 @@ import click
 
 from bender import APP_VERSION, APP_NAME
 from bender.jira.cli import cli as jira_cli
-from bender.utils import config, config_file
+from bender.utils import config, config_file, AppConnect
 
 
 @click.group('cli')
@@ -36,6 +36,7 @@ def cli_config(edit, delete, create):
         click.edit(filename=config_file)
 
     click.echo(click.format_filename('{}'.format(config_file)))
+
 
 
 cli.add_command(jira_cli)
