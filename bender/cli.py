@@ -2,14 +2,21 @@ import os
 
 import click
 
-from .jira.cli import cli as jira_cli
-from .utils import config, config_file
+from bender import APP_VERSION, APP_NAME
+from bender.jira.cli import cli as jira_cli
+from bender.utils import config, config_file
 
 
 @click.group('cli')
 def cli():
     """Bending Atlassian to its will since 2020!"""
     pass
+
+
+@cli.command('version')
+def cli_version():
+    """Bender version"""
+    click.echo(f'{APP_NAME}: {APP_VERSION}')
 
 
 @cli.command('config')
