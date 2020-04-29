@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bender"
-version = "0.3.0"
+version = "0.3.1"
 description = "CLI admin interface for Atlassian Jira"
 authors = ["Charles Moreland <morelanc@ohsu.edu>"]
 license = "MIT"

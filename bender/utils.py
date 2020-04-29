@@ -9,6 +9,7 @@ from requests.exceptions import ConnectionError
 import click
 import requests
 import yaml
+import json
 
 from bender import APP_NAME
 
@@ -38,6 +39,9 @@ def write_out(data: [dict, list], output: str = None):
     if not output:
         output = config['output']['default_output']
 
+    if output is 'raw':
+        click.echo(data)
+        
     if output is 'json':
         click.echo(json.dumps(data, indent=config['output'].getint('json_indent'),
                               sort_keys=config['output'].getboolean('json_sort_keys')))
@@ -86,14 +90,14 @@ class AppConnect:
     def password(self, password: str):
         self._password = base64.encodebytes(password.encode())
 
-    def get_json(self, api, params: dict = None, **kwargs):
+    def get_json(self, api, params: dict = None, data: dict = None, **kwargs):
         url = urljoin(self.server, api)
         resp: dict = {}
 
         self.session.headers.update(self.json_headers)
 
         try:
-            self._response = self.session.get(url, params=params, **kwargs)
+            self._response = self.session.get(url, params=params, data=data, **kwargs)
         except ConnectionError:
             return {'error': f'failure connecting to {self.server}.'}
 
@@ -103,7 +107,30 @@ class AppConnect:
         else:
             resp = {
                 'status_code': self._response.status_code,
+                'url': self._response.url,
                 'reason': self._response.reason
+            }
+
+        return resp
+
+    def put_json(self, api: str, params: dict = None, data: dict = None, **kwargs):
+        url = urljoin(self.server, api)
+        resp: dict = {}
+        self.session.headers.update(self.json_headers)
+
+        try:
+            self._response = self.session.post(url, params=params, json=data, **kwargs)
+        except ConnectionError:
+            return {'error': f'failure connecting to {self.server}.'}
+
+        if self._response.ok:
+            self.cache_cookies()
+            resp = self._response.json()
+        else:
+            resp = {
+                'status_code': self._response.status_code,
+                'url': self._response.url,
+                'reason': self._response.reason,
             }
 
         return resp
@@ -124,6 +151,7 @@ class AppConnect:
         else:
             resp = {
                 'status_code': self._response.status_code,
+                'url': self._response.url,
                 'reason': self._response.reason
             }
 

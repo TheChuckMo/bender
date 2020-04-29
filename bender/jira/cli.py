@@ -1,4 +1,5 @@
 import click
+import json
 
 from ..utils import config, AppConnect, write_out
 
@@ -21,7 +22,7 @@ jira_reindex_path = "/rest/api/2/reindex"
               help="connection username")
 @click.option('--password', required=True, show_default=False, default=config['account'].get('password', fallback=None),
               help='connection password')
-@click.option('--output', '--out', default=config['output'].get('default_output'), type=click.Choice(['yaml', 'json']),
+@click.option('--output', '--out', default=config['output'].get('default_output'), type=click.Choice(['yaml', 'json', 'raw']),
               help="output format")
 @click.pass_context
 def cli(ctx, server, username, password, output):
@@ -33,11 +34,11 @@ def cli(ctx, server, username, password, output):
     }
 
 
-@cli.command('properties')
+@cli.command('property')
 @click.argument('action', type=click.Choice(['view', 'set', 'get']), default='view')
-@click.option('--advanced', '--ad', default=False, help="view advanced application-properties.")
-@click.option('--id', 'propid', default=None, type=str, help="application-property id for get and set.")
-@click.option('--value', default=None, type=str, help="application-property value for set.")
+@click.option('--advanced', '--ad', is_flag=True, default=False, help="view advanced application-properties.")
+@click.option('--id', 'propid', default=None, type=str, help="application-properties id for get and set.")
+@click.option('--value', default=None, type=str, help="application-properties value for set.")
 @click.pass_context
 def jira_properties(ctx, action, advanced, propid, value):
     """Jira application-properties.
@@ -57,7 +58,24 @@ def jira_properties(ctx, action, advanced, propid, value):
         if not propid:
             click.secho('--id <application-property id> required.', fg='red', blink=True, bold=True, err=True)
             exit(1)
-        _res = ctx.obj['connect'].get_json(f'{jira_application_properties_path}/{propid}')
+        params = {
+            'keyFilter': propid
+        }
+        _res = ctx.obj['connect'].get_json(jira_application_properties_path, params=params)
+
+    if action is 'set':
+        if not propid:
+            click.secho('--id <application-property id> required.', fg='red', blink=True, bold=True, err=True)
+            exit(1)
+        if not value:
+            click.secho('--value <application-property value> required.', fg='red', blink=True, bold=True, err=True)
+            exit(1)
+
+        data = {
+            "id": propid,
+            "value": value
+        }
+        _res = ctx.obj['connect'].put_json(f'{jira_application_properties_path}/{propid}', data=data)
 
     write_out(data=_res, output=ctx.obj['output'])
 
