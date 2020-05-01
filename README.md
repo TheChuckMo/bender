@@ -6,7 +6,7 @@ Bending Atlassian to its will since 2020!
 
 *stable*
 
-    pip3 install --user git+https://itgcode.ohsu.edu/scm/~morelanc/bender.git#egg=bender
+    pip3 install --user git+https://itgcode.ohsu.edu/scm/~morelanc/bender.git@latest#egg=bender
 
 *upgrade stable*
 
