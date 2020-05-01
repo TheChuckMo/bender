@@ -10,6 +10,12 @@ bender.egg-info/dependency_links.txt
 bender.egg-info/entry_points.txt
 bender.egg-info/requires.txt
 bender.egg-info/top_level.txt
+bender/confluence/__init__.py
+bender/confluence/__main__.py
+bender/confluence/cli.py
+bender/crowd/__init__.py
+bender/crowd/__main__.py
+bender/crowd/cli.py
 bender/jira/__init__.py
 bender/jira/__main__.py
 bender/jira/cli.py

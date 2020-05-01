@@ -55,11 +55,13 @@ For *zsh* add to ~/.zshrc:
 
 *dev install w/poetry*
 
+- clone repo with git
 - `poetry install`
+- `poetry shell`
 
 *build w/poetry*
 
-- `poetry version [major,minor,patch]
+- `poetry version [major,minor,patch]`
 - `poetry build`
 - `git commit ...;git push`
 
