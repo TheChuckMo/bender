@@ -10,11 +10,11 @@ Bending Atlassian to its will since 2020!
 
 *upgrade stable*
 
-    pip3 install --user --upgrade git+https://itgcode.ohsu.edu/scm/~morelanc/bender.git#egg=bender
+    pip3 install --user --upgrade git+https://itgcode.ohsu.edu/scm/~morelanc/bender.git@latest#egg=bender
 
 *ssh git uri*
 
-    git+ssh://itgcode.ohsu.edu/scm/~morelanc/bender.git#egg=bender
+    git+ssh://itgcode.ohsu.edu/scm/~morelanc/bender.git@latest#egg=bender
 
 ## Config file
 
