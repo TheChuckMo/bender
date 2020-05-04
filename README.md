@@ -18,7 +18,6 @@ Bending Atlassian to its will since 2020!
 
 ## Config file
 
-- [Bender Config Docs](docs/config.md)
 
 - create config file with defaults
   - `bender config --create`
@@ -36,6 +35,12 @@ username = user
 # password = 
 ```
 
+## Docs
+
+- [Bender Config Docs](docs/config.md)
+- [Jira commands](docs/jira/index.md)
+- [Crowd commands](docs/crowd/index.md)
+- [Confluence commands](docs/confluence/index.md)
 
 ## Command completion
 
