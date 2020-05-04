@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "bender"
 version = "0.5.2"
-description = "CLI admin interface for Atlassian Jira"
+description = "CLI admin interface for Atlassian apps"
 authors = ["Charles Moreland <morelanc@ohsu.edu>"]
 license = "MIT"
 
@@ -15,10 +15,13 @@ requests_toolbelt = "^0.9.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"
+mkdocs = "^1.1"
 
 [tool.poetry.scripts]
 bender = 'bender.cli:cli'
-jbender = 'bender.jira.cli:cli'
+bendjira = 'bender.jira.cli:cli'
+bendconfluence = 'bender.confluence.cli:cli'
+bendcrowd = 'bender.crowd.cli:cli'
 
 [build-system]
 requires = ["poetry>=0.12"]

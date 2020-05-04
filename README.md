@@ -59,9 +59,16 @@ For *zsh* add to ~/.zshrc:
 - `poetry install`
 - `poetry shell`
 
+*serve docs*
+
+- `poetry shell`
+- `mkdocs serve`
+
 *build w/poetry*
 
 - `poetry version [major,minor,patch]`
-- `poetry build`
-- `git commit ...;git push`
+- `poetry build wheel`
+- `git add dist`
+- `git commit -am 'message'`
+- `git push`
 
