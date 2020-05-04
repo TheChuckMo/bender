@@ -1,24 +1,8 @@
 import click
 
-from ..utils import config, AppConnect, write_out
+from bender.utils import config, AppConnect, write_out, json_headers, form_headers, no_check_headers
 
 confluence_config = config['confluence']
-
-# headers
-json_headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-}
-form_headers = {
-    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    'X-Atlassian-Token': 'no-check'
-}
-no_check_headers = {
-    'X-Atlassian-Token': 'no-check'
-}
-
-# API paths
-confluence_status_path = "/status"
 
 
 @click.group('confluence')
@@ -47,10 +31,6 @@ def cli(ctx, server, username, password, output):
 @click.pass_context
 def confluence_status(ctx):
     """Confluence application status (read only)."""
-    click.echo(f'connection: {ctx.obj["connect"].username}')
-    click.echo(f'connection: {ctx.obj["connect"].password}')
-    click.echo(f'connection: {ctx.obj["connect"].session.cookies}')
-    for i in confluence_config.items():
-        click.echo(f'config: {i}')
-    _res = ctx.obj['connect'].get_json(confluence_status_path, headers=json_headers)
+    confluence_status_path = "status"
+    _res = ctx.obj['connect'].get(confluence_status_path, headers=json_headers)
     write_out(data=_res, output=ctx.obj['output'])

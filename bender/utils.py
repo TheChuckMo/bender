@@ -12,12 +12,12 @@ from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
 from requests_toolbelt.sessions import BaseUrlSession
 
-from bender import APP_DIR
+from bender import APP_DIR, APP_CURRENT_DIR
 
 """configuration"""
-config_defaults = {
-    'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}'
-}
+# config_defaults = {
+#     'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}'
+# }
 config_default_dict = {
     'jira': {
         'server': 'http://localhost:8080/',
@@ -38,10 +38,14 @@ config_default_dict = {
         'default_output': 'yaml'
     }
 }
-config_file = os.path.join(APP_DIR, 'config.ini')
+config_file = os.path.join(APP_DIR, 'bender.cfg')
+local_config_file = os.path.join(APP_CURRENT_DIR, 'bender.cfg')
+
 config = configparser.ConfigParser()
 config.read_dict(config_default_dict)
 config.read(config_file)
+if os.path.isfile(local_config_file):
+    config.read(local_config_file)
 
 json_headers = {
     'Content-Type': 'application/json',
@@ -211,19 +215,25 @@ class AppConnect:
             try:
                 _json = res.json()
             except JSONDecodeError as err:
-                SystemExit(err)
+                SystemExit()
 
         if not _json:
-            _json = {
-                'ok': self._response.ok,
-                'status_code': self._response.status_code,
-                'reason': self._response.text,
-                'request-url': self._response.request.url,
-                'request-method': self._response.request.method,
-                'text': self._response.text
-                # 'redirect': self._response.is_redirect
-                # 'elapsed': self._response.elapsed.seconds,
-            }
+            if res.ok:
+                _json = {
+                    'ok': self._response.ok,
+                    'status-code': self._response.status_code
+                }
+            else:
+                _json = {
+                    'ok': self._response.ok,
+                    'status_code': self._response.status_code,
+                    'reason': self._response.text,
+                    'request-url': self._response.request.url,
+                    'request-method': self._response.request.method,
+                    'text': self._response.text,
+                    'redirect': self._response.is_redirect,
+                    'elapsed': self._response.elapsed.seconds
+                }
 
         return _json
 

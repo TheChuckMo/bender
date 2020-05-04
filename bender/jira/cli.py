@@ -3,21 +3,9 @@ import os
 
 import click
 
-from ..utils import config, AppConnect, write_out, json_headers, no_check_headers
+from bender.utils import config, AppConnect, write_out, json_headers, no_check_headers
 
 jira_config = config['jira']
-
-
-# json_headers = {
-#     'Content-Type': 'application/json',
-#     'Accept': 'application/json'
-# }
-# form_headers = {
-#     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-# }
-# no_check_headers = {
-#     'X-Atlassian-Token': 'no-check'
-# }
 
 
 @click.group('jira')
@@ -46,7 +34,7 @@ def cli(ctx, server, username, password, output):
 @click.pass_context
 def jira_status(ctx):
     """Jira application status (read only)."""
-    jira_status_path = "/status"
+    jira_status_path = "status"
     _res = ctx.obj['connect'].get(jira_status_path, headers=json_headers, auth=False)
     write_out(data=_res, output=ctx.obj['output'])
 
@@ -62,9 +50,9 @@ def jira_status(ctx):
 @click.pass_context
 def jira_session(ctx, delete, cookies, view, login, logout, websudo, release):
     """Jira session."""
-    jira_session_path = "/rest/auth/1/session"
-    jira_websudo_jspa_path = "/secure/admin/WebSudoAuthenticate.jspa"
-    jira_websudo_path = "/rest/auth/1/websudo"
+    jira_session_path = "rest/auth/1/session"
+    jira_websudo_jspa_path = "secure/admin/WebSudoAuthenticate.jspa"
+    jira_websudo_path = "rest/auth/1/websudo"
     if release:
         _res = ctx.obj['connect'].delete(jira_websudo_path, headers=no_check_headers)
         write_out(_res, ctx.obj['output'])
@@ -99,8 +87,8 @@ def jira_session(ctx, delete, cookies, view, login, logout, websudo, release):
         if ans:
             # taken directly from atlassian python api
             atl_token = \
-            ans.get('reason').split('<meta id="atlassian-token" name="atlassian-token" content="')[1].split('\n')[
-                0].split('"')[0]
+                ans.get('reason').split('<meta id="atlassian-token" name="atlassian-token" content="')[1].split('\n')[
+                    0].split('"')[0]
         if atl_token:
             ctx.obj['connect'].update_cookies({'atl_token': atl_token})
             websudo_token = True
@@ -113,6 +101,34 @@ def jira_session(ctx, delete, cookies, view, login, logout, websudo, release):
     if cookies:
         for cookie in ctx.obj['connect'].session.cookies:
             click.echo(cookie)
+
+
+@cli.command('user', no_args_is_help=True)
+@click.argument('name', default=None)
+@click.option('--password', default=None, type=str, help="Set Jira user password.")
+@click.pass_context
+def jira_user(ctx, name, password):
+    """Jira user password.
+
+    name    Jira username.
+    \b
+    """
+    jira_user_path = '/rest/api/2/user'
+    if password:
+        params = {
+            'username': name
+        }
+        data = json.dumps({
+            'password': password
+        })
+        _res = ctx.obj['connect'].put(f'{jira_user_path}/password', headers=json_headers, params=params, data=data, auth=True)
+        write_out(data=_res, output=ctx.obj['output'])
+    else:
+        params = {
+            'username': name
+        }
+        _res = ctx.obj['connect'].get(jira_user_path, headers=json_headers, params=params, auth=True)
+        write_out(data=_res, output=ctx.obj['output'])
 
 
 @cli.command('property', no_args_is_help=True)
@@ -206,17 +222,13 @@ def jira_index(ctx, action, comments, history, worklogs, taskid):
     write_out(data=_res, output=ctx.obj['output'])
 
 
-# @cli.command('settings')
-# @click.pass_context
-# def jira_settings(ctx):
-#     """Jira application settings"""
-# jira_settings_path = "/rest/api/2/settings"
-#     server = ctx.obj.get('server')
-#     auth = ctx.obj.get('auth')
-#     url = '{server}{api}'.format(server=server, api=jira_settings_path)
-#     res = requests.get(url, auth=auth)
-#     print('{}'.format(res.status_code))
-#     print(json.dumps(res.json(), indent=2))
+@cli.command('settings')
+@click.pass_context
+def jira_settings(ctx):
+    """Jira application settings"""
+    jira_settings_path = "rest/api/2/settings"
+    _res = ctx.obj['connect'].get(jira_settings_path, headers=json_headers, auth=True)
+    write_out(data=_res, output=ctx.obj['output'])
 
 
 @cli.command('cluster', no_args_is_help=True)

@@ -3,8 +3,10 @@ import os
 import click
 
 from bender import APP_VERSION, APP_NAME
+from bender.confluence.cli import cli as confluence_cli
+from bender.crowd.cli import cli as crowd_cli
 from bender.jira.cli import cli as jira_cli
-from bender.utils import config, config_file
+from bender.utils import config, config_file, local_config_file
 
 
 @click.group('cli')
@@ -18,19 +20,29 @@ def cli():
 @click.option('--edit', is_flag=True, default=False, help="edit config file")
 @click.option('--create', is_flag=True, default=False, help="create config file")
 @click.option('--delete', is_flag=True, default=False, help="delete config file")
-def cli_config(edit, delete, create):
+@click.option('--path', is_flag=True, default=False, help="show path to config file")
+@click.option('--local', is_flag=True, default=False, help="manage local config file")
+def cli_config(edit, delete, create, path, local):
     """Manage bender config."""
+    _config_file = config_file
+
+    if local:
+        _config_file = local_config_file
+
     if delete:
-        os.unlink(config_file)
+        os.unlink(_config_file)
 
     if create:
-        with click.open_file(config_file, 'w') as f:
+        with click.open_file(_config_file, 'w') as f:
             config.write(f)
 
     if edit:
-        click.edit(filename=config_file)
+        click.edit(filename=_config_file)
 
-    click.echo(click.format_filename('{}'.format(config_file)))
+    if path:
+        click.echo(click.format_filename('{}'.format(_config_file)))
 
 
 cli.add_command(jira_cli)
+cli.add_command(crowd_cli)
+cli.add_command(confluence_cli)

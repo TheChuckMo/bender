@@ -2,3 +2,4 @@ click<8.0.0,>=7.1.1
 colorama<0.5.0,>=0.4.3
 pyyaml<6.0.0,>=5.3.1
 requests<3.0.0,>=2.23.0
+requests_toolbelt<0.10.0,>=0.9.1

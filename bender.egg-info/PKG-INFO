@@ -1,6 +1,6 @@
 Metadata-Version: 1.2
 Name: bender
-Version: 0.4.2
+Version: 0.5.0
 Summary: CLI admin interface for Atlassian Jira
 Home-page: UNKNOWN
 Author: Charles Moreland
@@ -8,4 +8,4 @@ Author-email: morelanc@ohsu.edu
 License: UNKNOWN
 Description: UNKNOWN
 Platform: UNKNOWN
-Requires-Python: >=3.7,<4.0
+Requires-Python: ==3.6.8

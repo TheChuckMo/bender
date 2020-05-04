@@ -1,24 +1,8 @@
 import click
 
-from ..utils import config, AppConnect, write_out
+from bender.utils import config, AppConnect, write_out, json_headers, form_headers, no_check_headers
 
 crowd_config = config['crowd']
-
-# headers
-json_headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-}
-form_headers = {
-    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    'X-Atlassian-Token': 'no-check'
-}
-no_check_headers = {
-    'X-Atlassian-Token': 'no-check'
-}
-
-# API paths
-crowd_status_path = "/status"
 
 
 @click.group('crowd')
@@ -47,5 +31,6 @@ def cli(ctx, server, username, password, output):
 @click.pass_context
 def crowd_status(ctx):
     """Crowd application status (read only)."""
-    _res = ctx.obj['connect'].get_json(crowd_status_path, headers=json_headers)
+    crowd_status_path = 'status'
+    _res = ctx.obj['connect'].get(crowd_status_path, headers=json_headers)
     write_out(data=_res, output=ctx.obj['output'])
