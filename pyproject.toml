@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "bender"
 version = "0.6.0"
-description = "CLI admin interface for Atlassian apps"
+description = "CLI admin interface for Atlassian apps."
 authors = ["Charles Moreland <morelanc@ohsu.edu>"]
 license = "MIT"
 
@@ -12,6 +12,7 @@ requests = "^2.23.0"
 pyyaml = "^5.3.1"
 colorama = "^0.4.3"
 requests_toolbelt = "^0.9.1"
+mkautodoc = "^0.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4.1"

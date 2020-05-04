@@ -15,9 +15,9 @@ from requests_toolbelt.sessions import BaseUrlSession
 from bender import APP_DIR, APP_CURRENT_DIR
 
 """configuration"""
-# config_defaults = {
-#     'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}'
-# }
+config_defaults = {
+    'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}'
+}
 config_default_dict = {
     'jira': {
         'server': 'http://localhost:8080/',
@@ -60,8 +60,14 @@ no_check_headers = {
 
 
 def write_out(data: [dict, list], output: str = None):
-    """write data to screen"""
-    if not output:
+    """write formatted data to screen.
+
+    Parameters
+    ----------
+    data:        dict or list to print.
+    output:      format to print.
+    """
+    if output is None:
         output = config['output']['default_output']
 
     if output is 'raw':
@@ -77,7 +83,15 @@ def write_out(data: [dict, list], output: str = None):
 class AppConnect:
     """App Connection
 
-    A wrapper for requests session to hold the Atlassian keys across command runs.
+    A wrapper for requests BaseUrlSession to hold Atlassian keys across command runs.
+
+    Parameters
+    ----------
+    server:          base url of app server.
+    username:        username for connection.
+    password:        password for connection.
+    cookie_store:    path to file for cookie_store.
+    session_headers: default headers added to every call.
     """
     _server: str
     username: str
@@ -88,7 +102,7 @@ class AppConnect:
     cookie_store: os.path = None
 
     def __init__(self, server: str, username: str = None, password: str = None, cookie_store: os.path = None,
-                 session_headers: dict = None):
+                 session_headers: dict = None) -> None:
         self.server = server
         self.session = BaseUrlSession(base_url=server)
 
@@ -238,18 +252,18 @@ class AppConnect:
         return _json
 
     def update_cookies(self, cookies: dict = None):
-        """add cookie(s) to cookie jar"""
+        """add cookie(s) to cookie jar."""
         self.session.cookies.update(cookies)
         self.cache_cookies()
 
     def cache_cookies(self):
-        """cache cookies to file"""
+        """cache cookies to file."""
         if self.session.cookies:
             with open(self.cookie_store, 'wb') as f:
                 pickle.dump(self.session.cookies, f)
 
     def reload_cookies(self):
-        """reload cookies from file"""
+        """reload cookies from file."""
         if os.path.isfile(self.cookie_store):
             with open(self.cookie_store, 'rb') as f:
                 self.session.cookies.update(pickle.load(f))

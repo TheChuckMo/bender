@@ -39,7 +39,7 @@ Commands:
 
 ## Output formats
 
-Three output options: [yaml, json, raw]
+Three output options: `[yaml, json, raw]`
 
 _yaml (default)_
 

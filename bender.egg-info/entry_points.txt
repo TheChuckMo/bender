@@ -1,4 +1,6 @@
 [console_scripts]
+bendconfluence = bender.confluence.cli:cli
+bendcrowd = bender.crowd.cli:cli
 bender = bender.cli:cli
-jbender = bender.jira.cli:cli
+bendjira = bender.jira.cli:cli
 
