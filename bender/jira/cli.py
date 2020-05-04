@@ -132,8 +132,8 @@ def jira_user(ctx, name, password):
 
 
 @cli.command('property', no_args_is_help=True)
-@click.argument('action', type=click.Choice(['view', 'set', 'get']), default='view')
-@click.option('--advanced', '--ad', is_flag=True, default=False, help="view advanced application-properties.")
+@click.argument('action', type=click.Choice(['list', 'set', 'get']), default='list')
+@click.option('--advanced', '--ad', is_flag=True, default=False, help="list advanced application-properties.")
 @click.option('--id', 'propid', default=None, type=str, help="application-properties id for get and set.")
 @click.option('--value', default=None, type=str, help="application-properties value for set.")
 @click.pass_context
@@ -141,13 +141,13 @@ def jira_property(ctx, action, advanced, propid, value):
     """Jira application-properties.
 
     \b
-    view    view application properties, --advanced for more.
+    list    view application properties, --advanced for more.
     set     set a property with --id and --value.
     get     get a property with --id.
     """
     jira_application_properties_path = "/rest/api/2/application-properties"
     jira_application_properties_advanced_path = "/rest/api/2/application-properties/advanced-settings"
-    if action is 'view':
+    if action is 'list':
         if advanced:
             _res = ctx.obj['connect'].get(jira_application_properties_advanced_path, headers=json_headers, auth=True)
         else:
@@ -191,7 +191,7 @@ def jira_index(ctx, action, comments, history, worklogs, taskid):
     """Jira index.
 
     \b
-    summary     (default) show index summary
+    summary     show index summary
     reindex     start a reindex
     status      status of reindex, opt: --taskid
     """
@@ -222,13 +222,13 @@ def jira_index(ctx, action, comments, history, worklogs, taskid):
     write_out(data=_res, output=ctx.obj['output'])
 
 
-@cli.command('settings')
-@click.pass_context
-def jira_settings(ctx):
-    """Jira application settings"""
-    jira_settings_path = "rest/api/2/settings"
-    _res = ctx.obj['connect'].get(jira_settings_path, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+# @cli.command('settings')
+# @click.pass_context
+# def jira_settings(ctx):
+#     """Jira application settings"""
+#     jira_settings_path = "rest/api/2/settings"
+#     _res = ctx.obj['connect'].get(jira_settings_path, headers=json_headers, auth=True)
+#     write_out(data=_res, output=ctx.obj['output'])
 
 
 @cli.command('cluster', no_args_is_help=True)
@@ -261,10 +261,86 @@ def jira_configuration(ctx):
     write_out(data=_res, output=ctx.obj['output'])
 
 
-@cli.command('serverinfo')
+@cli.command('serverinfo', no_args_is_help=True)
+@click.argument('action', type=click.Choice(['get', 'baseUrl']), default='get')
+@click.option('--value', default=None, type=str, help="value to set.")
+@click.option('--health-check', is_flag=True, default=False, help="run a health check")
 @click.pass_context
-def jira_serverinfo(ctx):
-    """Jira server information (read only)."""
-    jira_serverinfo_path = "/rest/api/2/serverInfo"
-    _res = ctx.obj['connect'].get(jira_serverinfo_path, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+def jira_serverinfo(ctx, action, value, health_check):
+    """Jira server information.
+
+    \b
+    get         view serverinfo.
+    baseUrl     set baseUrl to --value <url>.
+    """
+    jira_serverinfo_path = "rest/api/2/serverInfo"
+    jira_settings_path = "rest/api/2/settings"
+    if action is 'get':
+        params = {
+            'doHealthCheck': health_check
+        }
+        _res = ctx.obj['connect'].get(jira_serverinfo_path, params=params, headers=json_headers, auth=True)
+        write_out(data=_res, output=ctx.obj['output'])
+
+    if action is 'baseUrl':
+        if not value:
+            click.echo('--value required to set baseUrl')
+            exit(1)
+
+        _res = ctx.obj['connect'].put(f'{jira_settings_path}/baseUrl', data=value, auth=True)
+        write_out(data=_res, output=ctx.obj['output'])
+
+
+@cli.command('authconfig', no_args_is_help=True)
+@click.argument('action', type=click.Choice(['get', 'set']), default='get')
+@click.option('--value', default=None, type=str, help="json for authconfig")
+@click.pass_context
+def jira_authconfig(ctx, action, value):
+    """Jira authentication configuration.
+
+    \b
+    get     get current authconfig.
+    set     set authconfig with valid json.
+    """
+    jira_authconfig_path = "rest/authconfig/1.0/saml"
+    if action is 'get':
+        _res = ctx.obj['connect'].get(jira_authconfig_path, headers=json_headers, auth=True)
+        write_out(data=_res, output=ctx.obj['output'])
+    
+    if action is 'set':
+        click.echo('not yet implemented.')
+
+
+@cli.command('webhook', no_args_is_help=True)
+@click.argument('action', type=click.Choice(['get', 'add', 'delete']), default='get')
+@click.option('--id', 'webhook_id', default=None, type=str, help="webhook id for delete.")
+@click.pass_context
+def jira_webhook(ctx, action, webhook_id):
+    """Jira authentication configuration.
+
+    \b
+    get     get webhooks, limit with --id <id>.
+    delete  delete a webhook by --id <id>.
+    """
+    jira_webhook_path = "rest/webhooks/1.0/webhook"
+
+    if action is 'get':
+        if webhook_id:
+            _url = f'{jira_webhook_path}/{webhook_id}'
+        else:
+            _url = jira_webhook_path
+
+        _res = ctx.obj['connect'].get(_url, headers=json_headers, auth=True)
+        write_out(data=_res, output=ctx.obj['output'])
+   
+    if action is 'add':
+        click.echo('not yet implemented')    
+        
+    if action is 'delete':
+        if not webhook_id:
+            click.echo('--id <id> is required.')
+            exit(1)
+
+        _url = f'{jira_webhook_path}/{webhook_id}'
+        _res = ctx.obj['connect'].delete(_url, headers=json_headers, auth=True)
+        write_out(data=_res, output=ctx.obj['output'])
