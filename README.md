@@ -18,6 +18,7 @@ Bending Atlassian to its will since 2020!
 
 ## Config file
 
+
 - create config file with defaults
   - `bender config --create`
 - edit config file with default editor
@@ -33,6 +34,8 @@ server = https://jiraurl:port
 username = user
 # password = 
 ```
+
+- [Bender Config Docs](docs/config.md)
 
 ## Command completion
 
