@@ -24,14 +24,16 @@ Options:
   --help                          Show this message and exit.
 
 Commands:
+  authconfig     Jira authentication configuration.
   cluster        Jira cluster.
   configuration  Jira server configuration (read only).
   index          Jira index.
   property       Jira application-properties.
-  serverinfo     Jira server information (read only).
+  serverinfo     Jira server information.
   session        Jira session.
   status         Jira application status (read only).
   user           Jira user password.
+  webhook        Jira authentication configuration.
 
 ```
 
