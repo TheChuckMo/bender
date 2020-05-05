@@ -5,8 +5,8 @@ from bender.jira.cli_cluster import jira_cluster
 from bender.jira.cli_index import jira_index
 from bender.jira.cli_property import jira_property
 from bender.jira.cli_session import jira_session
-from bender.jira.cli_webhook import jira_webhook
 from bender.jira.cli_user import jira_user
+from bender.jira.cli_webhook import jira_webhook
 from bender.utils import config, AppConnect, write_out, json_headers
 
 jira_config = config['jira']

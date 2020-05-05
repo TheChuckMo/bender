@@ -42,5 +42,6 @@ def jira_user_password(ctx, name, password):
     data = json.dumps({
         'password': password
     })
-    _res = ctx.obj['connect'].put(f'{jira_user_path}/password', headers=json_headers, params=params, data=data, auth=True)
+    _res = ctx.obj['connect'].put(f'{jira_user_path}/password', headers=json_headers, params=params, data=data,
+                                  auth=True)
     write_out(data=_res, output=ctx.obj['output'])
