@@ -16,7 +16,11 @@ from bender import APP_DIR, APP_CURRENT_DIR
 
 """configuration"""
 config_defaults = {
-    'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}'
+    'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}',
+    'default_output': 'yaml',
+    'json_indent': '2',
+    'json_sort_keys': 'True',
+    'yaml_flow_style': 'False'
 }
 config_default_dict = {
     'jira': {
@@ -31,17 +35,12 @@ config_default_dict = {
         'server': 'http://localhost:8095/crowd/',
         'cookie_store': f'{os.path.join(APP_DIR, ".crowd.cookies")}'
     },
-    'output': {
-        'json_indent': '2',
-        'json_sort_keys': 'True',
-        'yaml_flow_style': 'False',
-        'default_output': 'yaml'
-    }
+    'output': {}
 }
 config_file = os.path.join(APP_DIR, 'bender.cfg')
 local_config_file = os.path.join(APP_CURRENT_DIR, 'bender.cfg')
 
-config = configparser.ConfigParser()
+config = configparser.ConfigParser(config_defaults)
 config.read_dict(config_default_dict)
 config.read(config_file)
 if os.path.isfile(local_config_file):

@@ -1,9 +1,14 @@
 import json
-import os
 
 import click
 
-from bender.utils import config, AppConnect, write_out, json_headers, no_check_headers
+from bender.jira.cli_authconfig import jira_authconfig
+from bender.jira.cli_cluster import jira_cluster
+from bender.jira.cli_index import jira_index
+from bender.jira.cli_property import jira_property
+from bender.jira.cli_session import jira_session
+from bender.jira.cli_webhook import jira_webhook
+from bender.utils import config, AppConnect, write_out, json_headers
 
 jira_config = config['jira']
 
@@ -30,6 +35,14 @@ def cli(ctx, server, username, password, output):
     }
 
 
+cli.add_command(jira_index)
+cli.add_command(jira_cluster)
+cli.add_command(jira_property)
+cli.add_command(jira_authconfig)
+cli.add_command(jira_webhook)
+cli.add_command(jira_session)
+
+
 @cli.command('status')
 @click.pass_context
 def jira_status(ctx):
@@ -39,68 +52,13 @@ def jira_status(ctx):
     write_out(data=_res, output=ctx.obj['output'])
 
 
-@cli.command('session', no_args_is_help=True)
-@click.option('--delete', is_flag=True, default=False, help="Delete session cookies.")
-@click.option('--cookies', is_flag=True, default=False, help="List cookies in store.")
-@click.option('--view', is_flag=True, default=False, help="View Jira session.")
-@click.option('--login', is_flag=True, default=False, help="login to Jira session.")
-@click.option('--logout', is_flag=True, default=False, help="logout of Jira session and delete cookies.")
-@click.option('--websudo', is_flag=True, default=False, help="Grant websudo access.")
-@click.option('--release', is_flag=True, default=False, help="Release websudo access.")
+@cli.command('configuration')
 @click.pass_context
-def jira_session(ctx, delete, cookies, view, login, logout, websudo, release):
-    """Jira session."""
-    jira_session_path = "rest/auth/1/session"
-    jira_websudo_jspa_path = "secure/admin/WebSudoAuthenticate.jspa"
-    jira_websudo_path = "rest/auth/1/websudo"
-    if release:
-        _res = ctx.obj['connect'].delete(jira_websudo_path, headers=no_check_headers)
-        write_out(_res, ctx.obj['output'])
-
-    if logout:
-        _res = ctx.obj['connect'].delete(jira_session_path, headers=json_headers)
-        write_out(_res, ctx.obj['output'])
-        delete = True
-
-    if delete:
-        if os.unlink(jira_config.get('cookie_store')):
-            click.secho('cookie store deleted.', fg='blue')
-
-    if login:
-        data = json.dumps({
-            'username': str(ctx.obj['connect'].username),
-            'password': str(ctx.obj['connect'].password)
-        })
-
-        _res = ctx.obj['connect'].post(jira_session_path, headers=json_headers, data=data)
-
-        write_out(_res, ctx.obj['output'])
-
-    if websudo:
-        websudo_token: bool = False
-        data = {
-            'webSudoPassword': ctx.obj['connect'].password,
-            'webSudoIsPost': "False"
-        }
-        ans = ctx.obj['connect'].post(jira_websudo_jspa_path, headers=json_headers.update(no_check_headers), data=data,
-                                      auth=True)
-        if ans:
-            # taken directly from atlassian python api
-            atl_token = \
-                ans.get('reason').split('<meta id="atlassian-token" name="atlassian-token" content="')[1].split('\n')[
-                    0].split('"')[0]
-        if atl_token:
-            ctx.obj['connect'].update_cookies({'atl_token': atl_token})
-            websudo_token = True
-        write_out(websudo_token, ctx.obj['output'])
-
-    if view:
-        _res = ctx.obj['connect'].get(jira_session_path, headers=json_headers)
-        write_out(_res, ctx.obj['output'])
-
-    if cookies:
-        for cookie in ctx.obj['connect'].session.cookies:
-            click.echo(cookie)
+def jira_configuration(ctx):
+    """Jira server configuration (read only)."""
+    jira_configuration_path = "/rest/api/2/configuration"
+    _res = ctx.obj['connect'].get(jira_configuration_path, headers=json_headers, auth=True)
+    write_out(data=_res, output=ctx.obj['output'])
 
 
 @cli.command('user', no_args_is_help=True)
@@ -121,7 +79,8 @@ def jira_user(ctx, name, password):
         data = json.dumps({
             'password': password
         })
-        _res = ctx.obj['connect'].put(f'{jira_user_path}/password', headers=json_headers, params=params, data=data, auth=True)
+        _res = ctx.obj['connect'].put(f'{jira_user_path}/password', headers=json_headers, params=params, data=data,
+                                      auth=True)
         write_out(data=_res, output=ctx.obj['output'])
     else:
         params = {
@@ -129,136 +88,6 @@ def jira_user(ctx, name, password):
         }
         _res = ctx.obj['connect'].get(jira_user_path, headers=json_headers, params=params, auth=True)
         write_out(data=_res, output=ctx.obj['output'])
-
-
-@cli.command('property', no_args_is_help=True)
-@click.argument('action', type=click.Choice(['list', 'set', 'get']), default='list')
-@click.option('--advanced', '--ad', is_flag=True, default=False, help="list advanced application-properties.")
-@click.option('--id', 'propid', default=None, type=str, help="application-properties id for get and set.")
-@click.option('--value', default=None, type=str, help="application-properties value for set.")
-@click.pass_context
-def jira_property(ctx, action, advanced, propid, value):
-    """Jira application-properties.
-
-    \b
-    list    view application properties, --advanced for more.
-    set     set a property with --id and --value.
-    get     get a property with --id.
-    """
-    jira_application_properties_path = "/rest/api/2/application-properties"
-    jira_application_properties_advanced_path = "/rest/api/2/application-properties/advanced-settings"
-    if action is 'list':
-        if advanced:
-            _res = ctx.obj['connect'].get(jira_application_properties_advanced_path, headers=json_headers, auth=True)
-        else:
-            _res = ctx.obj['connect'].get(jira_application_properties_path, headers=json_headers, auth=True)
-
-    if action is 'get':
-        if not propid:
-            click.secho('--id <application-property id> required.', fg='red', blink=True, bold=True, err=True)
-            exit(1)
-        params = {
-            'keyFilter': propid
-        }
-        _res = ctx.obj['connect'].get(jira_application_properties_path, params=params, headers=json_headers, auth=True)
-
-    if action is 'set':
-        if not propid:
-            click.secho('--id <application-property id> required.', fg='red', blink=True, bold=True, err=True)
-            exit(1)
-        if not value:
-            click.secho('--value <application-property value> required.', fg='red', blink=True, bold=True, err=True)
-            exit(1)
-
-        data = json.dumps({
-            "id": propid,
-            "value": value
-        })
-        _res = ctx.obj['connect'].put(f'{jira_application_properties_path}/{propid}', data=data, headers=json_headers,
-                                      auth=True)
-
-    write_out(data=_res, output=ctx.obj['output'])
-
-
-@cli.command('index', no_args_is_help=True)
-@click.argument('action', type=click.Choice(['summary', 'reindex', 'status']), default='summary')
-@click.option('--comments/--no-comments', default=True, help="reindex comments")
-@click.option('--history/--no-history', default=True, help="reindex change history")
-@click.option('--worklogs/--no-worklogs', default=True, help="reindex work logs")
-@click.option('--taskid', default=None, help="reindex task id")
-@click.pass_context
-def jira_index(ctx, action, comments, history, worklogs, taskid):
-    """Jira index.
-
-    \b
-    summary     show index summary
-    reindex     start a reindex
-    status      status of reindex, opt: --taskid
-    """
-    jira_index_path = "/rest/api/2/index/summary"
-    jira_reindex_path = "/rest/api/2/reindex"
-    if action is 'reindex':
-        params = {
-            'indexComments': comments,
-            'indexChangeHistory': history,
-            'indexWorklogs': worklogs,
-            'type': 'BACKGROUND_PREFERRED'
-        }
-        _res = ctx.obj['connect'].post(jira_reindex_path, params=params, headers=json_headers, auth=True,
-                                       allow_redirects=False)
-
-    if action is 'status' and taskid is not None:
-        params = {
-            'taskId': taskid
-        }
-        _res = ctx.obj['connect'].get(jira_reindex_path, params=params, headers=json_headers, auth=True,
-                                      allow_redirects=False)
-    elif action is 'status':
-        _res = ctx.obj['connect'].get(jira_reindex_path, headers=json_headers, auth=True, allow_redirects=False)
-
-    if action is 'summary':
-        _res = ctx.obj['connect'].get(jira_index_path, headers=json_headers, auth=True)
-
-    write_out(data=_res, output=ctx.obj['output'])
-
-
-# @cli.command('settings')
-# @click.pass_context
-# def jira_settings(ctx):
-#     """Jira application settings"""
-#     jira_settings_path = "rest/api/2/settings"
-#     _res = ctx.obj['connect'].get(jira_settings_path, headers=json_headers, auth=True)
-#     write_out(data=_res, output=ctx.obj['output'])
-
-
-@cli.command('cluster', no_args_is_help=True)
-@click.argument('action', type=click.Choice(['state', 'nodes']), default='state')
-@click.pass_context
-def jira_cluster(ctx, action):
-    """Jira cluster.
-
-    \b
-    state   (default) cluster state
-    nodes   cluster nodes state
-    """
-    jira_cluster_nodes_path = "/rest/api/2/cluster/nodes"
-    jira_cluster_state_path = "/rest/api/2/cluster/zdu/state"
-    if action is 'state':
-        _res = ctx.obj['connect'].get(jira_cluster_state_path, headers=json_headers, auth=True)
-        write_out(data=_res, output=ctx.obj['output'])
-
-    if action is 'nodes':
-        _res = ctx.obj['connect'].get(jira_cluster_nodes_path, headers=json_headers, auth=True)
-        write_out(data=_res, output=ctx.obj['output'])
-
-
-@cli.command('configuration')
-@click.pass_context
-def jira_configuration(ctx):
-    """Jira server configuration (read only)."""
-    jira_configuration_path = "/rest/api/2/configuration"
-    _res = ctx.obj['connect'].get(jira_configuration_path, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
 
 
 @cli.command('serverinfo', no_args_is_help=True)
@@ -288,59 +117,4 @@ def jira_serverinfo(ctx, action, value, health_check):
             exit(1)
 
         _res = ctx.obj['connect'].put(f'{jira_settings_path}/baseUrl', data=value, auth=True)
-        write_out(data=_res, output=ctx.obj['output'])
-
-
-@cli.command('authconfig', no_args_is_help=True)
-@click.argument('action', type=click.Choice(['get', 'set']), default='get')
-@click.option('--value', default=None, type=str, help="json for authconfig")
-@click.pass_context
-def jira_authconfig(ctx, action, value):
-    """Jira authentication configuration.
-
-    \b
-    get     get current authconfig.
-    set     set authconfig with valid json.
-    """
-    jira_authconfig_path = "rest/authconfig/1.0/saml"
-    if action is 'get':
-        _res = ctx.obj['connect'].get(jira_authconfig_path, headers=json_headers, auth=True)
-        write_out(data=_res, output=ctx.obj['output'])
-    
-    if action is 'set':
-        click.echo('not yet implemented.')
-
-
-@cli.command('webhook', no_args_is_help=True)
-@click.argument('action', type=click.Choice(['get', 'add', 'delete']), default='get')
-@click.option('--id', 'webhook_id', default=None, type=str, help="webhook id for delete.")
-@click.pass_context
-def jira_webhook(ctx, action, webhook_id):
-    """Jira authentication configuration.
-
-    \b
-    get     get webhooks, limit with --id <id>.
-    delete  delete a webhook by --id <id>.
-    """
-    jira_webhook_path = "rest/webhooks/1.0/webhook"
-
-    if action is 'get':
-        if webhook_id:
-            _url = f'{jira_webhook_path}/{webhook_id}'
-        else:
-            _url = jira_webhook_path
-
-        _res = ctx.obj['connect'].get(_url, headers=json_headers, auth=True)
-        write_out(data=_res, output=ctx.obj['output'])
-   
-    if action is 'add':
-        click.echo('not yet implemented')    
-        
-    if action is 'delete':
-        if not webhook_id:
-            click.echo('--id <id> is required.')
-            exit(1)
-
-        _url = f'{jira_webhook_path}/{webhook_id}'
-        _res = ctx.obj['connect'].delete(_url, headers=json_headers, auth=True)
         write_out(data=_res, output=ctx.obj['output'])

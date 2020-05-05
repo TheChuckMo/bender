@@ -1,6 +1,6 @@
 import click
 
-from bender.utils import config, AppConnect, write_out, json_headers, form_headers, no_check_headers
+from bender.utils import config, AppConnect, write_out, json_headers
 
 confluence_config = config['confluence']
 
