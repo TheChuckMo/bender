@@ -4,10 +4,12 @@ import json
 import os
 import pickle
 from json.decoder import JSONDecodeError
+from pprint import pformat
 
 import click
 import requests
 import yaml
+from click import File
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
 from requests_toolbelt.sessions import BaseUrlSession
@@ -17,9 +19,11 @@ from bender import APP_DIR, APP_CURRENT_DIR
 """configuration"""
 config_defaults = {
     'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}',
-    'default_output': 'yaml',
+    'default_output': 'pretty',
     'json_indent': '2',
     'json_sort_keys': 'True',
+    'pprint_indent': '2',
+    'pprint_depth': '4',
     'yaml_flow_style': 'False'
 }
 config_default_dict = {
@@ -58,25 +62,69 @@ no_check_headers = {
 }
 
 
-def write_out(data: [dict, list], output: str = None):
-    """write formatted data to screen.
+class AppWriter:
+    """App Writer"""
 
-    Parameters
-    ----------
-    data:        dict or list to print.
-    output:      format to print.
-    """
-    if output is None:
-        output = config['output']['default_output']
+    output: str = config['output'].get('default_output')
+    file: File = None
+    section: str = 'output'
+    _data: [list, dict] = None
 
-    if output is 'raw':
-        click.echo(data)
+    def __init__(self, output: str = None, section: str = None):
+        if output:
+            self.output = output
 
-    if output is 'json':
-        click.echo(json.dumps(data, indent=config['output'].getint('json_indent'),
-                              sort_keys=config['output'].getboolean('json_sort_keys')))
-    elif output is 'yaml':
-        click.echo(yaml.dump(data, default_flow_style=config['output'].getboolean('yaml_flow_style')))
+        if section:
+            self.section = section
+
+    def out(self, data: [dict, list], output: str = None, file=None):
+        """write out."""
+        if data:
+            self.data = data
+
+        if output:
+            self.output = output
+
+        if file:
+            self.file = file
+
+        if self.output is 'pretty':
+            click.echo(self.pretty, file=file)
+
+        if self.output is 'json':
+            click.echo(self.json, file=file)
+
+        if self.output is 'yaml':
+            click.echo(self.yaml, file=file)
+
+        if self.output is 'raw':
+            click.echo(self.data, file=file)
+
+    @property
+    def data(self):
+        """Data to write"""
+        return self._data
+
+    @data.setter
+    def data(self, data: [list, dict] = None):
+        self._data = data
+
+    @property
+    def pretty(self):
+        """data as pretty"""
+        return pformat(self.data, indent=config[self.section].getint('pprint_indent'),
+                       depth=config[self.section].getint('pprint_depth'))
+
+    @property
+    def json(self):
+        """data as json"""
+        return json.dumps(self.data, indent=config[self.section].getint('json_indent'),
+                          sort_keys=config[self.section].getboolean('json_sort_keys'))
+
+    @property
+    def yaml(self):
+        """data as json"""
+        return yaml.dump(self.data, default_flow_style=config[self.section].getboolean('yaml_flow_style'))
 
 
 class AppConnect:
@@ -124,6 +172,7 @@ class AppConnect:
 
     @property
     def server(self):
+        """server baseUrl for connection"""
         return self._server
 
     @server.setter
@@ -134,6 +183,7 @@ class AppConnect:
 
     @property
     def password(self):
+        """password for connection."""
         return base64.decodebytes(self._password).decode()
 
     @password.setter
@@ -142,6 +192,21 @@ class AppConnect:
 
     def get(self, api, headers: dict = None, params: dict = None, data: dict = None, auth: bool = False,
             allow_redirects=True):
+        """send http get request.
+
+        Parameters
+        ----------
+        api:        str url path appended to baseUrl.
+        headers:    dict of headers.
+        params:     dict of url query parameters.
+        data:       dict of data to send.
+        auth:       bool(False) send BasicAuth.
+        allow_redirects
+
+        Returns
+        -------
+
+        """
         # url = urljoin(self.server, api)
         url = api
 
@@ -161,7 +226,19 @@ class AppConnect:
         return self.json_response(self._response)
 
     def delete(self, api, headers: dict = None, params=None, auth: bool = False):
-        # url = urljoin(self.server, api)
+        """send http delete request.
+
+        Parameters
+        ----------
+        api:        str url path appended to baseUrl.
+        headers:    dict of headers.
+        params:     dict of url query parameters.
+        auth:       bool(False) send BasicAuth.
+
+        Returns
+        -------
+        ->json
+        """
         url = api
 
         try:
@@ -180,6 +257,21 @@ class AppConnect:
 
     def post(self, api: str, headers: dict = None, params: dict = None, data: dict = None, auth: bool = False,
              allow_redirects: bool = True):
+        """send http post request.
+
+        Parameters
+        ----------
+        api:        str url path appended to baseUrl.
+        headers:    dict of headers.
+        params:     dict of url query parameters.
+        data:       dict of data to send.
+        auth:       bool(False) send BasicAuth.
+        allow_redirects
+
+        Returns
+        -------
+        ->json
+        """
         # url = urljoin(self.server, api)
         url = api
 
@@ -199,7 +291,20 @@ class AppConnect:
         return self.json_response(self._response)
 
     def put(self, api: str, headers: dict = None, params: dict = None, data: dict = None, auth: bool = False):
-        # url = urljoin(self.server, api)
+        """send http put request.
+
+        Parameters
+        ----------
+        api:        str url path appended to baseUrl.
+        headers:    dict of headers.
+        params:     dict of url query parameters.
+        data:       dict of data to send.
+        auth:       bool(False) send BasicAuth.
+
+        Returns
+        -------
+        ->json
+        """
         url = api
 
         try:
@@ -218,6 +323,16 @@ class AppConnect:
         return self.json_response(self._response)
 
     def json_response(self, res: requests):
+        """Always return a json response.
+
+        Parameters
+        ----------
+        res:    requests response.
+
+        Returns
+        -------
+        ->json
+        """
         _json = None
 
         if res.ok:
@@ -228,16 +343,17 @@ class AppConnect:
             try:
                 _json = res.json()
             except JSONDecodeError as err:
-                SystemExit()
+                SystemExit(err)
 
         if not _json:
             if res.ok:
-                _json = {
-                    'ok': self._response.ok,
-                    'status-code': self._response.status_code
-                }
+                _json = json.dumps({
+                    'success': self._response.ok,
+                    'status code': self._response.status_code,
+                    'elapsed seconds': self._response.elapsed.seconds
+                })
             else:
-                _json = {
+                _json = json.dumps({
                     'ok': self._response.ok,
                     'status_code': self._response.status_code,
                     'reason': self._response.text,
@@ -246,12 +362,17 @@ class AppConnect:
                     'text': self._response.text,
                     'redirect': self._response.is_redirect,
                     'elapsed': self._response.elapsed.seconds
-                }
+                })
 
         return _json
 
     def update_cookies(self, cookies: dict = None):
-        """add cookie(s) to cookie jar."""
+        """add cookie(s) to cookie jar.
+
+        Parameters
+        ----------
+        cookies
+        """
         self.session.cookies.update(cookies)
         self.cache_cookies()
 
@@ -266,3 +387,28 @@ class AppConnect:
         if os.path.isfile(self.cookie_store):
             with open(self.cookie_store, 'rb') as f:
                 self.session.cookies.update(pickle.load(f))
+
+# def write_out(data: [dict, list], output: str = None):
+#     """write formatted data to screen.
+#
+#     Parameters
+#     ----------
+#     data:        dict or list to print.
+#     output:      format to print.
+#        :pprint|yaml|json|raw:
+#     """
+#     if output is None:
+#         output = config['output'].get('default_output')
+#
+#     if output is 'pretty':
+#         pprint(json.dumps(data), indent=config['output'].getint('pprint_indent'),
+#                depth=config['output'].getint('pprint_depth'), stream=None)
+#
+#     if output is 'raw':
+#         click.echo(data)
+#
+#     if output is 'json':
+#         click.echo(json.dumps(data, indent=config['output'].getint('json_indent'),
+#                               sort_keys=config['output'].getboolean('json_sort_keys')))
+#     elif output is 'yaml':
+#         click.echo(yaml.dump(data, default_flow_style=config['output'].getboolean('yaml_flow_style')))

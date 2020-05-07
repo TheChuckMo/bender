@@ -1,6 +1,6 @@
 import click
 
-from bender.utils import config, AppConnect, write_out, json_headers
+from bender.utils import config, AppConnect, AppWriter, json_headers
 
 confluence_config = config['confluence']
 
@@ -23,7 +23,7 @@ def cli(ctx, server, username, password, output):
     ctx.obj = {
         'connect': AppConnect(server, username=username, password=password,
                               cookie_store=confluence_config.get('cookie_store')),
-        'output': output
+        'writer': AppWriter(output=output, section='confluence')
     }
 
 
@@ -33,4 +33,4 @@ def confluence_status(ctx):
     """Confluence application status (read only)."""
     confluence_status_path = "status"
     _res = ctx.obj['connect'].get(confluence_status_path, headers=json_headers)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)

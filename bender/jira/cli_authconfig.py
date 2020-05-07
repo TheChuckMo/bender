@@ -1,6 +1,6 @@
 import click
 
-from bender.utils import json_headers, write_out
+from bender.utils import json_headers
 
 
 @click.group('authconfig')
@@ -16,7 +16,7 @@ def jira_authconfig_get(ctx):
     """get authentication config."""
     jira_authconfig_path = "rest/authconfig/1.0/saml"
     _res = ctx.obj['connect'].get(jira_authconfig_path, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_authconfig.command('set')

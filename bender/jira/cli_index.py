@@ -1,6 +1,6 @@
 import click
 
-from bender.utils import json_headers, write_out
+from bender.utils import json_headers
 
 
 @click.group('index')
@@ -16,7 +16,7 @@ def jira_index_state(ctx):
     """Jira index state."""
     jira_index_path = "/rest/api/2/index/summary"
     _res = ctx.obj['connect'].get(jira_index_path, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_index.command('reindex')
@@ -37,7 +37,7 @@ def jira_index_reindex(ctx, comments, history, worklogs):
     _res = ctx.obj['connect'].post(jira_reindex_path, params=params, headers=json_headers, auth=True,
                                    allow_redirects=False)
 
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_index.command('status')
@@ -55,4 +55,4 @@ def jira_index_status(ctx, task_id):
 
     _res = ctx.obj['connect'].get(jira_reindex_path, params=params, headers=json_headers, auth=True,
                                   allow_redirects=False)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)

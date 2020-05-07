@@ -1,6 +1,6 @@
 import click
 
-from bender.utils import config, AppConnect, write_out, json_headers
+from bender.utils import config, AppConnect, AppWriter, json_headers
 
 crowd_config = config['crowd']
 
@@ -23,7 +23,7 @@ def cli(ctx, server, username, password, output):
     ctx.obj = {
         'connect': AppConnect(server, username=username, password=password,
                               cookie_store=crowd_config.get('cookie_store')),
-        'output': output
+        'writer': AppWriter(output=output, section='crowd')
     }
 
 
@@ -33,4 +33,4 @@ def crowd_status(ctx):
     """Crowd application status (read only)."""
     crowd_status_path = 'status'
     _res = ctx.obj['connect'].get(crowd_status_path, headers=json_headers)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)

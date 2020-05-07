@@ -1,6 +1,6 @@
 import click
 
-from bender.utils import json_headers, write_out
+from bender.utils import json_headers
 
 
 @click.group('webhook')
@@ -22,7 +22,7 @@ def jira_webhook_get(ctx, webhook_id):
         _url = f'{jira_webhook_path}/{webhook_id}'
 
     _res = ctx.obj['connect'].get(_url, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_webhook.command('add')
@@ -41,4 +41,4 @@ def jira_webhook_delete(ctx, webhook_id):
     jira_webhook_path = "rest/webhooks/1.0/webhook"
     _url = f'{jira_webhook_path}/{webhook_id}'
     _res = ctx.obj['connect'].delete(_url, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)

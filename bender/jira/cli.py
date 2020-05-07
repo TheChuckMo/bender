@@ -7,7 +7,7 @@ from bender.jira.cli_property import jira_property
 from bender.jira.cli_session import jira_session
 from bender.jira.cli_user import jira_user
 from bender.jira.cli_webhook import jira_webhook
-from bender.utils import config, AppConnect, write_out, json_headers
+from bender.utils import config, AppConnect, AppWriter, json_headers
 
 jira_config = config['jira']
 
@@ -18,8 +18,8 @@ jira_config = config['jira']
               help="connection username")
 @click.option('--password', show_default=False, default=jira_config.get('password', fallback=None),
               help='connection password')
-@click.option('--output', '--out', default=config['output'].get('default_output'),
-              type=click.Choice(['yaml', 'json', 'raw']),
+@click.option('--output', '--out', default=jira_config.get('default_output'),
+              type=click.Choice(['pretty', 'yaml', 'json', 'raw']),
               help="output format")
 @click.pass_context
 def cli(ctx, server, username, password, output):
@@ -30,6 +30,7 @@ def cli(ctx, server, username, password, output):
     ctx.obj = {
         'connect': AppConnect(server, username=username, password=password,
                               cookie_store=jira_config.get('cookie_store')),
+        'writer': AppWriter(output=output, section='jira'),
         'output': output
     }
 
@@ -40,7 +41,7 @@ def jira_status(ctx):
     """Jira application status (read only)."""
     jira_status_path = "status"
     _res = ctx.obj['connect'].get(jira_status_path, headers=json_headers, auth=False)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @cli.command('configuration')
@@ -49,7 +50,7 @@ def jira_configuration(ctx):
     """Jira server configuration (read only)."""
     jira_configuration_path = "/rest/api/2/configuration"
     _res = ctx.obj['connect'].get(jira_configuration_path, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @cli.command('baseUrl')
@@ -59,10 +60,10 @@ def jira_baseurl(ctx, value):
     """Set Jira baseUrl."""
     jira_settings_path = "rest/api/2/settings"
     _res = ctx.obj['connect'].put(f'{jira_settings_path}/baseUrl', data=value, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
-@cli.command('serverinfo', no_args_is_help=True)
+@cli.command('serverinfo')
 @click.option('--health-check', '-h', is_flag=True, default=False, help="run a health check")
 @click.pass_context
 def jira_serverinfo(ctx, health_check):
@@ -72,7 +73,7 @@ def jira_serverinfo(ctx, health_check):
         'doHealthCheck': health_check
     }
     _res = ctx.obj['connect'].get(jira_serverinfo_path, params=params, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 cli.add_command(jira_index)

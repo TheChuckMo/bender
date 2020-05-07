@@ -4,7 +4,7 @@ import os
 import click
 
 from bender.utils import config
-from bender.utils import no_check_headers, write_out, json_headers
+from bender.utils import no_check_headers, json_headers
 
 jira_config = config['jira']
 
@@ -28,8 +28,7 @@ def jira_session_login(ctx):
     })
 
     _res = ctx.obj['connect'].post(jira_session_path, headers=json_headers, data=data)
-
-    write_out(_res, ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_session.command('logout')
@@ -38,7 +37,7 @@ def jira_session_logout(ctx):
     """Session logout."""
     jira_session_path = "rest/auth/1/session"
     _res = ctx.obj['connect'].delete(jira_session_path, headers=json_headers)
-    write_out(_res, ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_session.command('get')
@@ -47,7 +46,7 @@ def jira_session_get(ctx):
     """Session get."""
     jira_session_path = "rest/auth/1/session"
     _res = ctx.obj['connect'].get(jira_session_path, headers=json_headers)
-    write_out(_res, ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_session.command('cookies')
@@ -73,7 +72,7 @@ def jira_session_websudo(ctx, release):
 
     if release:
         _res = ctx.obj['connect'].delete(jira_websudo_path, headers=no_check_headers)
-        write_out(_res, ctx.obj['output'])
+        ctx.obj['writer'].out(_res)
         exit()
 
     websudo_token: bool = False
@@ -91,4 +90,5 @@ def jira_session_websudo(ctx, release):
         if atl_token:
             ctx.obj['connect'].update_cookies({'atl_token': atl_token})
             websudo_token = True
-    write_out(websudo_token, ctx.obj['output'])
+
+        ctx.obj['writer'].out([atl_token, websudo_token])

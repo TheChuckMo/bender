@@ -2,7 +2,7 @@ import json
 
 import click
 
-from bender.utils import json_headers, write_out
+from bender.utils import json_headers
 
 
 @click.group('property')
@@ -34,7 +34,7 @@ def jira_property_list(ctx, advanced, key):
         _url = jira_application_properties_path
 
     _res = ctx.obj['connect'].get(_url, params=params, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_property.command('get')
@@ -57,7 +57,7 @@ def jira_property_get(ctx, key):
         }
 
     _res = ctx.obj['connect'].get(jira_application_properties_path, params=params, headers=json_headers, auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
 
 
 @jira_property.command('set')
@@ -73,4 +73,4 @@ def jira_property_set(ctx, key, value):
     })
     _res = ctx.obj['connect'].put(f'{jira_application_properties_path}/{key}', data=data, headers=json_headers,
                                   auth=True)
-    write_out(data=_res, output=ctx.obj['output'])
+    ctx.obj['writer'].out(_res)
