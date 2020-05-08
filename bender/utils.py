@@ -13,6 +13,8 @@ from click import File
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
 from requests_toolbelt.sessions import BaseUrlSession
+from jsonpath_ng import jsonpath
+from jsonpath_ng.ext import parse, filter
 
 from bender import APP_DIR, APP_CURRENT_DIR
 
@@ -68,6 +70,7 @@ class AppWriter:
     output: str = config['output'].get('default_output')
     file: File = None
     section: str = 'output'
+    _json_filter: str = None
     _data: [list, dict] = None
 
     def __init__(self, output: str = None, section: str = None):
@@ -77,10 +80,13 @@ class AppWriter:
         if section:
             self.section = section
 
-    def out(self, data: [dict, list], output: str = None, file=None):
+    def out(self, data: [dict, list], output: str = None, json_filter: str = None, file=None):
         """write out."""
         if data:
             self.data = data
+
+        if json_filter:
+            self.json_filter = json_filter
 
         if output:
             self.output = output
@@ -101,13 +107,25 @@ class AppWriter:
             click.echo(self.data, file=file)
 
     @property
+    def json_filter(self):
+        """Data filter for output."""
+        return self._json_filter
+
+    @json_filter.setter
+    def json_filter(self, json_filter: str):
+        self._json_filter = parse(json_filter)
+
+    @property
     def data(self):
-        """Data to write"""
+        """Data to write."""
+        if self.json_filter:
+            return self.json_filter.find(self._data)
+        
         return self._data
 
     @data.setter
     def data(self, data: [list, dict] = None):
-        self._data = data
+        self._data = json.loads(json.dumps(data))
 
     @property
     def pretty(self):
