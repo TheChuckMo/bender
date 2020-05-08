@@ -12,14 +12,27 @@ jira_config = config['jira']
 @click.group('session')
 @click.pass_context
 def jira_session(ctx):
-    """Jira session management."""
+    """Jira session management.
+
+    \b
+    Examples:
+    bender jira session get
+    bender jira session logout
+    bender jira session login
+    bender jira session cookies --delete
+    """
     pass
 
 
 @jira_session.command('login')
 @click.pass_context
 def jira_session_login(ctx):
-    """session login."""
+    """session login.
+
+    \b
+    Examples:
+    bender jira session login
+    """
     jira_session_path = "rest/auth/1/session"
 
     data = json.dumps({
@@ -34,7 +47,12 @@ def jira_session_login(ctx):
 @jira_session.command('logout')
 @click.pass_context
 def jira_session_logout(ctx):
-    """Session logout."""
+    """Session logout.
+
+    \b
+    Examples:
+    bender jira session logout
+    """
     jira_session_path = "rest/auth/1/session"
     _res = ctx.obj['connect'].delete(jira_session_path, headers=json_headers)
     ctx.obj['writer'].out(_res)
@@ -43,7 +61,13 @@ def jira_session_logout(ctx):
 @jira_session.command('get')
 @click.pass_context
 def jira_session_get(ctx):
-    """Session get."""
+    """Session get.
+
+    \b
+    Examples:
+    bender jira session get
+    bender jira session cookies --delete
+    """
     jira_session_path = "rest/auth/1/session"
     _res = ctx.obj['connect'].get(jira_session_path, headers=json_headers)
     ctx.obj['writer'].out(_res)
@@ -53,7 +77,12 @@ def jira_session_get(ctx):
 @click.option('--delete', '-d', is_flag=True, default=False, help="Delete session cookies.")
 @click.pass_context
 def jira_session_cookies(ctx, delete):
-    """Session cookies."""
+    """Session cookies.
+
+    \b
+    Examples:
+    bender jira session cookies --delete
+    """
     if delete:
         if os.unlink(jira_config.get('cookie_store')):
             click.secho('cookie store deleted.', fg='blue')

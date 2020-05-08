@@ -10,38 +10,46 @@ state: RUNNING
 ## Commands
 
 ```shell
-$ bender jira
 Usage: bender jira [OPTIONS] COMMAND [ARGS]...
 
-  Jira Server administration.
+  Server administration.
 
 Options:
   --server TEXT                   connection server  [required]
   --username TEXT                 connection username  [required]
   --password TEXT                 connection password
-  --output, --out [yaml|json|raw]
+  --output, --out [pretty|yaml|json|raw]
                                   output format
   --help                          Show this message and exit.
 
 Commands:
   authconfig     Jira authentication configuration.
+  baseUrl        Set Jira baseUrl.
   cluster        Jira cluster.
   configuration  Jira server configuration (read only).
   index          Jira index.
   property       Jira application-properties.
-  serverinfo     Jira server information.
-  session        Jira session.
+  serverinfo     Jira server information and health-check.
+  session        Jira session management.
   status         Jira application status (read only).
-  user           Jira user password.
-  webhook        Jira authentication configuration.
-
+  user           Jira user.
+  webhook        Jira webhooks.
 ```
 
 ## Output formats
 
-Three output options: `[yaml, json, raw]`
+Three output options: `[pretty, yaml, json, raw]`
 
-_yaml (default)_
+_pretty_
+
+Use python pretty print.
+
+```shell
+$ bender jira status                                                                                                                                                                             !10544
+{'state': 'RUNNING'}
+```
+
+_yaml_
 
 ```shell
 $ bender jira --out yaml status

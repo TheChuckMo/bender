@@ -8,7 +8,18 @@ from bender.utils import json_headers
 @click.group('property')
 @click.pass_context
 def jira_property(ctx):
-    """Jira application-properties."""
+    """Jira application-properties.
+
+    \b
+    Examples:
+    bender jira property list
+    bender jira property list --advanced
+    bender jira property list --key 'jira.*'
+    bender jira property get cluster.task.cleanup.offline.node.threshold
+    bender jira property get 'jira.search.*'
+    bender jira property set jira.quicksearch.max.concurrent.searches 22
+    bender jira property set jira.lf.top.bgcolour '#ED6D23'
+    """
     pass
 
 
@@ -17,7 +28,14 @@ def jira_property(ctx):
 @click.option('--key', '-k', default=None, type=str, help="key (id) filter.")
 @click.pass_context
 def jira_property_list(ctx, advanced, key):
-    """list application-properties (--advanced)."""
+    """list application-properties (--advanced).
+
+    \b
+    Examples:
+    bender jira property list
+    bender jira property list --advanced
+    bender jira property list --key 'jira.*'
+    """
     jira_application_properties_path = "/rest/api/2/application-properties"
     jira_application_properties_advanced_path = "/rest/api/2/application-properties/advanced-settings"
     _url = None
@@ -38,15 +56,15 @@ def jira_property_list(ctx, advanced, key):
 
 
 @jira_property.command('get')
-@click.option('--key', '-k', default=None, type=str, required=True, help="property key (id) filter.")
+@click.argument('key', type=str, required=True)
 @click.pass_context
 def jira_property_get(ctx, key):
     """get application-property.
 
     \b
-    $ bender jira property get --key cluster.task.cleanup.offline.node.threshold
-
-    $ bender jira property get --key 'jira.search.*'
+    Examples:
+    bender jira property get cluster.task.cleanup.offline.node.threshold
+    bender jira property get 'jira.search.*'
 
     """
     jira_application_properties_path = "/rest/api/2/application-properties"
@@ -61,11 +79,20 @@ def jira_property_get(ctx, key):
 
 
 @jira_property.command('set')
-@click.option('--key', '-k', default=None, type=str, required=True, help="application-property key (id).")
-@click.option('--value', '-v', default=None, type=str, required=True, help="application-property value.")
+@click.argument('key', type=str, required=True)
+@click.argument('value', type=str, required=True)
 @click.pass_context
 def jira_property_set(ctx, key, value):
-    """set an application-property."""
+    """set an application-property.
+
+    key     property key to update.
+    value   value for property.
+
+    \b
+    Examples:
+    bender jira property set jira.quicksearch.max.concurrent.searches 22
+    bender jira property set jira.lf.top.bgcolour '#ED6D23'
+    """
     jira_application_properties_path = "/rest/api/2/application-properties"
     data = json.dumps({
         "id": key,

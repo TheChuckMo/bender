@@ -11,8 +11,8 @@ confluence_config = config['confluence']
               help="connection username")
 @click.option('--password', show_default=False, default=confluence_config.get('password', fallback=None),
               help='connection password')
-@click.option('--output', '--out', default=config['output'].get('default_output'),
-              type=click.Choice(['yaml', 'json', 'raw']),
+@click.option('--output', '--out', default=confluence_config.get('default_output'),
+              type=click.Choice(AppWriter.FORMATS),
               help="output format")
 @click.pass_context
 def cli(ctx, server, username, password, output):

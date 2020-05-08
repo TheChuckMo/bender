@@ -7,25 +7,45 @@ import json
 @click.group('authconfig')
 @click.pass_context
 def jira_authconfig(ctx):
-    """Jira authentication configuration."""
+    """Jira authentication configuration.
+
+    \b
+    Examples:
+    bender jira authconfig get
+    bender jira authconfig set allow-saml-redirect-override false
+    bender jira authconfig load authconfig.json
+    """
     pass
 
 
 @jira_authconfig.command('get')
 @click.pass_context
 def jira_authconfig_get(ctx):
-    """get authentication config."""
+    """get authentication config.
+
+    \b
+    Examples:
+    bender jira authconfig get
+    """
     jira_authconfig_path = "rest/authconfig/1.0/saml"
     _res = ctx.obj['connect'].get(jira_authconfig_path, headers=json_headers, auth=True)
     ctx.obj['writer'].out(_res)
 
 
 @jira_authconfig.command('set')
-@click.option('--value', '-v', default=None, required=True, type=str, help="value to set")
-@click.option('--key', '-k', default=None, required=True, type=str, help="key to set")
+@click.argument('key', required=True, type=str)
+@click.argument('value', required=True, type=str)
 @click.pass_context
 def jira_authconfig_set(ctx, key, value):
-    """set authentication config."""
+    """Set authentication parameter.
+
+    key     parameter to set.
+    value   value to set.
+
+    \b
+    Examples:
+    bender jira authconfig set allow-saml-redirect-override false
+    """
     jira_authconfig_path = "rest/authconfig/1.0/saml"
     data = json.dumps({
         key: value
@@ -38,7 +58,12 @@ def jira_authconfig_set(ctx, key, value):
 @click.argument('file', type=click.File('r'))
 @click.pass_context
 def jira_authconfig_load(ctx, file):
-    """set authentication config."""
+    """Load authentication config from file.
+
+    \b
+    Examples:
+    bender jira authconfig load authconfig.json
+    """
     jira_authconfig_path = "rest/authconfig/1.0/saml"
     data = json.dumps(json.load(file))
     #click.echo(data)

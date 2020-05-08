@@ -64,7 +64,7 @@ no_check_headers = {
 
 class AppWriter:
     """App Writer"""
-
+    FORMATS: list = ['pretty', 'json', 'yaml', 'raw']
     output: str = config['output'].get('default_output')
     file: File = None
     section: str = 'output'

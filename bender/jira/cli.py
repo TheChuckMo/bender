@@ -19,11 +19,17 @@ jira_config = config['jira']
 @click.option('--password', show_default=False, default=jira_config.get('password', fallback=None),
               help='connection password')
 @click.option('--output', '--out', default=jira_config.get('default_output'),
-              type=click.Choice(['pretty', 'yaml', 'json', 'raw']),
+              type=click.Choice(AppWriter.FORMATS),
               help="output format")
 @click.pass_context
 def cli(ctx, server, username, password, output):
-    """Server administration."""
+    """Server administration.
+
+    \b
+    Examples:
+
+    bender jira --username juser1 --password 'secret' --server http://localhost:8080 status
+    """
     if not password:
         password = click.prompt(f'{server} password', hide_input=True, confirmation_prompt=True, show_default=False)
 
@@ -54,10 +60,18 @@ def jira_configuration(ctx):
 
 
 @cli.command('baseUrl')
-@click.option('--value', '-v', default=None, type=str, required=True, help="baseUrl of server.")
+@click.argument('value', type=str, required=True)
 @click.pass_context
 def jira_baseurl(ctx, value):
-    """Set Jira baseUrl."""
+    """Set Jira baseUrl.
+
+    value       baseUrl to set
+
+    \b
+    Examples:
+    bender jira baseUrl https://example.com/jira
+
+    """
     jira_settings_path = "rest/api/2/settings"
     _res = ctx.obj['connect'].put(f'{jira_settings_path}/baseUrl', data=value, auth=True)
     ctx.obj['writer'].out(_res)
@@ -67,7 +81,13 @@ def jira_baseurl(ctx, value):
 @click.option('--health-check', '-h', is_flag=True, default=False, help="run a health check")
 @click.pass_context
 def jira_serverinfo(ctx, health_check):
-    """Jira server information and health-check."""
+    """Jira server information and health-check.
+
+    \b
+    Examples:
+    bender jira serverinfo
+    bender jira serverinfo --health-check
+    """
     jira_serverinfo_path = "rest/api/2/serverInfo"
     params = {
         'doHealthCheck': health_check

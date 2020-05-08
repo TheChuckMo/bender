@@ -17,13 +17,23 @@ def cli():
 
 
 @cli.command('config', no_args_is_help=True)
-@click.option('--edit', is_flag=True, default=False, help="edit config file")
-@click.option('--create', is_flag=True, default=False, help="create config file")
-@click.option('--delete', is_flag=True, default=False, help="delete config file")
-@click.option('--path', is_flag=True, default=False, help="show path to config file")
-@click.option('--local', is_flag=True, default=False, help="manage local config file")
+@click.option('--edit', '-e', is_flag=True, default=False, help="edit config file")
+@click.option('--create', '-c', is_flag=True, default=False, help="create config file")
+@click.option('--delete', '-d', is_flag=True, default=False, help="delete config file")
+@click.option('--path', '-p', is_flag=True, default=False, help="show path to config file")
+@click.option('--local', '-l', is_flag=True, default=False, help="manage local config file")
 def cli_config(edit, delete, create, path, local):
-    """Manage bender config."""
+    """Manage bender config.
+
+    --local manges config file within the local directory.
+
+    \b
+    Examples:
+    bender config --path
+    bender config --local --path
+    bender config --create --edit
+    bender config --local --create --edit
+    """
     _config_file = config_file
 
     if local:

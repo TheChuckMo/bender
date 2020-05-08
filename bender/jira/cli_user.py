@@ -6,38 +6,45 @@ from bender.utils import json_headers
 
 
 @click.group('user')
+@click.argument('name', default=None, type=str, required=True)
 @click.pass_context
-def jira_user(ctx):
-    """Jira user."""
-    pass
+def jira_user(ctx, name):
+    """Jira user.
+
+    name    Jira user name.
+
+    \b
+    Examples:
+    bender jira user juser1 get
+    bender jira user juser1 password 'new-password'
+    """
+    ctx.obj.update({'username': name})
 
 
-@jira_user.command('get', no_args_is_help=True)
-@click.argument('name', default=None)
+@jira_user.command('get')
 @click.pass_context
-def jira_user_get(ctx, name):
-    """Get user."""
+def jira_user_get(ctx):
+    """Get user information."""
     jira_user_path = '/rest/api/2/user'
     params = {
-        'username': name
+        'username': ctx.obj.get('username')
     }
     _res = ctx.obj['connect'].get(jira_user_path, headers=json_headers, params=params, auth=True)
     ctx.obj['writer'].out(_res)
 
 
-@jira_user.command('user', no_args_is_help=True)
-@click.argument('name', default=None)
-@click.option('--password', default=None, required=True, type=str, help="New user password.")
+@jira_user.command('password')
+@click.argument('password', default=None, type=str)
 @click.pass_context
-def jira_user_password(ctx, name, password):
+def jira_user_password(ctx, password):
     """Set user password.
 
-    name    Jira username.
+    password    New password.
     \b
     """
     jira_user_path = '/rest/api/2/user'
     params = {
-        'username': name
+        'username': ctx.obj.get('username')
     }
     data = json.dumps({
         'password': password

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bender"
-version = "0.6.3"
+version = "0.7.0"
 description = "CLI admin interface for Atlassian apps."
 authors = ["Charles Moreland <morelanc@ohsu.edu>"]
 license = "MIT"
