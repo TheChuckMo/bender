@@ -1,7 +1,8 @@
+import json
+
 import click
 
 from bender.utils import json_headers
-import json
 
 
 @click.group('authconfig')
@@ -66,6 +67,6 @@ def jira_authconfig_load(ctx, file):
     """
     jira_authconfig_path = "rest/authconfig/1.0/saml"
     data = json.dumps(json.load(file))
-    #click.echo(data)
+    # click.echo(data)
     _res = ctx.obj['connect'].put(jira_authconfig_path, headers=json_headers, data=data, auth=True)
     ctx.obj['writer'].out(_res)

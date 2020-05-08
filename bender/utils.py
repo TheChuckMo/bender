@@ -10,11 +10,10 @@ import click
 import requests
 import yaml
 from click import File
+from jsonpath_ng.ext import parse
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
 from requests_toolbelt.sessions import BaseUrlSession
-from jsonpath_ng import jsonpath
-from jsonpath_ng.ext import parse, filter
 
 from bender import APP_DIR, APP_CURRENT_DIR
 
@@ -120,7 +119,7 @@ class AppWriter:
         """Data to write."""
         if self.json_filter:
             return self.json_filter.find(self._data)
-        
+
         return self._data
 
     @data.setter
