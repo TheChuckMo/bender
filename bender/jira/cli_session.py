@@ -11,7 +11,7 @@ jira_config = config['jira']
 
 @click.group('session')
 @click.pass_context
-def jira_session(ctx):
+def cli_jira_session(ctx):
     """Jira session management.
 
     \b
@@ -24,9 +24,9 @@ def jira_session(ctx):
     pass
 
 
-@jira_session.command('login')
+@cli_jira_session.command('login')
 @click.pass_context
-def jira_session_login(ctx):
+def cli_jira_session_login(ctx):
     """session login.
 
     \b
@@ -44,9 +44,9 @@ def jira_session_login(ctx):
     ctx.obj['writer'].out(_res)
 
 
-@jira_session.command('logout')
+@cli_jira_session.command('logout')
 @click.pass_context
-def jira_session_logout(ctx):
+def cli_jira_session_logout(ctx):
     """Session logout.
 
     \b
@@ -58,9 +58,9 @@ def jira_session_logout(ctx):
     ctx.obj['writer'].out(_res)
 
 
-@jira_session.command('get')
+@cli_jira_session.command('get')
 @click.pass_context
-def jira_session_get(ctx):
+def cli_jira_session_get(ctx):
     """Session get.
 
     \b
@@ -73,10 +73,10 @@ def jira_session_get(ctx):
     ctx.obj['writer'].out(_res)
 
 
-@jira_session.command('cookies')
+@cli_jira_session.command('cookies')
 @click.option('--delete', '-d', is_flag=True, default=False, help="Delete session cookies.")
 @click.pass_context
-def jira_session_cookies(ctx, delete):
+def cli_jira_session_cookies(ctx, delete):
     """Session cookies.
 
     \b
@@ -91,10 +91,10 @@ def jira_session_cookies(ctx, delete):
         click.echo(cookie)
 
 
-@jira_session.command('websudo')
+@cli_jira_session.command('websudo')
 @click.option('--release', is_flag=True, default=False, help="Release websudo access.")
 @click.pass_context
-def jira_session_websudo(ctx, release):
+def cli_jira_session_websudo(ctx, release):
     """Websudo."""
     jira_websudo_jspa_path = "secure/admin/WebSudoAuthenticate.jspa"
     jira_websudo_path = "rest/auth/1/websudo"

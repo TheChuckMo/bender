@@ -29,7 +29,7 @@ def cli(ctx, server, username, password, output):
 
 @cli.command('status')
 @click.pass_context
-def crowd_status(ctx):
+def cli_crowd_status(ctx):
     """Crowd application status (read only)."""
     crowd_status_path = 'status'
     _res = ctx.obj['connect'].get(crowd_status_path, headers=json_headers)

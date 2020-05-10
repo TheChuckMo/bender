@@ -108,23 +108,27 @@ class AppWriter:
     @property
     def json_filter(self):
         """Data filter for output."""
-        return self._json_filter
+        if self._json_filter:
+            return parse(self._json_filter)
+
+        return False
 
     @json_filter.setter
     def json_filter(self, json_filter: str):
-        self._json_filter = parse(json_filter)
+        self._json_filter = json_filter
 
     @property
     def data(self):
         """Data to write."""
         if self.json_filter:
-            return self.json_filter.find(self._data)
+            _data = self.json_filter.find(self._data)
+            return _data
 
         return self._data
 
     @data.setter
     def data(self, data: [list, dict] = None):
-        self._data = json.loads(json.dumps(data))
+        self._data = data
 
     @property
     def pretty(self):
@@ -140,7 +144,7 @@ class AppWriter:
 
     @property
     def yaml(self):
-        """data as json"""
+        """data as yaml"""
         return yaml.dump(self.data, default_flow_style=config[self.section].getboolean('yaml_flow_style'))
 
 

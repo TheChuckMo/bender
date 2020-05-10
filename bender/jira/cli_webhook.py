@@ -5,15 +5,15 @@ from bender.utils import json_headers
 
 @click.group('webhook')
 @click.pass_context
-def jira_webhook(ctx):
+def cli_jira_webhook(ctx):
     """Jira webhooks."""
     pass
 
 
-@jira_webhook.command('get')
+@cli_jira_webhook.command('get')
 @click.option('--id', 'webhook_id', default=None, type=str, help="id of webhook.")
 @click.pass_context
-def jira_webhook_get(ctx, webhook_id):
+def cli_jira_webhook_get(ctx, webhook_id):
     """get webhook list or by id.
 
     \b
@@ -31,18 +31,18 @@ def jira_webhook_get(ctx, webhook_id):
     ctx.obj['writer'].out(_res)
 
 
-@jira_webhook.command('add')
+@cli_jira_webhook.command('add')
 @click.pass_context
-def jira_webhook_add(ctx):
+def cli_jira_webhook_add(ctx):
     """add a webhook."""
     jira_webhook_path = "rest/webhooks/1.0/webhook"
     click.echo('not yet implemented')
 
 
-@jira_webhook.command('delete')
+@cli_jira_webhook.command('delete')
 @click.option('--id', 'webhook_id', required=True, default=None, type=str, help="id of webhook.")
 @click.pass_context
-def jira_webhook_delete(ctx, webhook_id):
+def cli_jira_webhook_delete(ctx, webhook_id):
     """delete a webhook by id.
 
     \b

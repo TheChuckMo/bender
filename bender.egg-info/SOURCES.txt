@@ -19,3 +19,11 @@ bender/crowd/cli.py
 bender/jira/__init__.py
 bender/jira/__main__.py
 bender/jira/cli.py
+bender/jira/cli_authconfig.py
+bender/jira/cli_cluster.py
+bender/jira/cli_email.py
+bender/jira/cli_index.py
+bender/jira/cli_property.py
+bender/jira/cli_session.py
+bender/jira/cli_user.py
+bender/jira/cli_webhook.py

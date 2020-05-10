@@ -8,7 +8,7 @@ from bender.utils import json_headers
 @click.group('user')
 @click.argument('name', default=None, type=str, required=True)
 @click.pass_context
-def jira_user(ctx, name):
+def cli_jira_user(ctx, name):
     """Jira user.
 
     name    Jira user name.
@@ -21,11 +21,11 @@ def jira_user(ctx, name):
     ctx.obj.update({'username': name})
 
 
-@jira_user.command('get')
+@cli_jira_user.command('get')
 @click.pass_context
-def jira_user_get(ctx):
+def cli_jira_user_get(ctx):
     """Get user information."""
-    jira_user_path = '/rest/api/2/user'
+    jira_user_path = 'rest/api/2/user'
     params = {
         'username': ctx.obj.get('username')
     }
@@ -33,16 +33,16 @@ def jira_user_get(ctx):
     ctx.obj['writer'].out(_res)
 
 
-@jira_user.command('password')
+@cli_jira_user.command('password')
 @click.argument('password', default=None, type=str)
 @click.pass_context
-def jira_user_password(ctx, password):
+def cli_jira_user_password(ctx, password):
     """Set user password.
 
     password    New password.
     \b
     """
-    jira_user_path = '/rest/api/2/user'
+    jira_user_path = 'rest/api/2/user'
     params = {
         'username': ctx.obj.get('username')
     }

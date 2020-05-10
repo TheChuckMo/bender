@@ -1,12 +1,14 @@
 import click
 
-from bender.jira.cli_authconfig import jira_authconfig
-from bender.jira.cli_cluster import jira_cluster
-from bender.jira.cli_index import jira_index
-from bender.jira.cli_property import jira_property
-from bender.jira.cli_session import jira_session
-from bender.jira.cli_user import jira_user
-from bender.jira.cli_webhook import jira_webhook
+from bender.jira.cli_authconfig import cli_jira_authconfig
+from bender.jira.cli_cluster import cli_jira_cluster
+from bender.jira.cli_index import cli_jira_index
+from bender.jira.cli_property import cli_jira_property
+from bender.jira.cli_session import cli_jira_session
+from bender.jira.cli_user import cli_jira_user
+from bender.jira.cli_webhook import cli_jira_webhook
+from bender.jira.cli_email import cli_jira_email
+from bender.jira.cli_insight import cli_jira_insight
 from bender.utils import config, AppConnect, AppWriter, json_headers
 
 jira_config = config['jira']
@@ -43,7 +45,7 @@ def cli(ctx, server, username, password, output):
 
 @cli.command('status')
 @click.pass_context
-def jira_status(ctx):
+def cli_jira_status(ctx):
     """Jira application status (read only)."""
     jira_status_path = "status"
     _res = ctx.obj['connect'].get(jira_status_path, headers=json_headers, auth=False)
@@ -52,7 +54,7 @@ def jira_status(ctx):
 
 @cli.command('configuration')
 @click.pass_context
-def jira_configuration(ctx):
+def cli_jira_configuration(ctx):
     """Jira server configuration (read only)."""
     jira_configuration_path = "/rest/api/2/configuration"
     _res = ctx.obj['connect'].get(jira_configuration_path, headers=json_headers, auth=True)
@@ -62,7 +64,7 @@ def jira_configuration(ctx):
 @cli.command('baseUrl')
 @click.argument('value', type=str, required=True)
 @click.pass_context
-def jira_baseurl(ctx, value):
+def cli_jira_baseurl(ctx, value):
     """Set Jira baseUrl.
 
     value       baseUrl to set
@@ -80,7 +82,7 @@ def jira_baseurl(ctx, value):
 @cli.command('serverinfo')
 @click.option('--health-check', '-h', is_flag=True, default=False, help="run a health check")
 @click.pass_context
-def jira_serverinfo(ctx, health_check):
+def cli_jira_serverinfo(ctx, health_check):
     """Jira server information and health-check.
 
     \b
@@ -96,10 +98,12 @@ def jira_serverinfo(ctx, health_check):
     ctx.obj['writer'].out(_res)
 
 
-cli.add_command(jira_index)
-cli.add_command(jira_cluster)
-cli.add_command(jira_property)
-cli.add_command(jira_authconfig)
-cli.add_command(jira_webhook)
-cli.add_command(jira_session)
-cli.add_command(jira_user)
+cli.add_command(cli_jira_index)
+cli.add_command(cli_jira_email)
+cli.add_command(cli_jira_cluster)
+cli.add_command(cli_jira_property)
+cli.add_command(cli_jira_authconfig)
+cli.add_command(cli_jira_webhook)
+cli.add_command(cli_jira_session)
+cli.add_command(cli_jira_user)
+cli.add_command(cli_jira_insight)

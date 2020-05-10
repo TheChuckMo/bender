@@ -29,7 +29,7 @@ def cli(ctx, server, username, password, output):
 
 @cli.command('status')
 @click.pass_context
-def confluence_status(ctx):
+def cli_confluence_status(ctx):
     """Confluence application status (read only)."""
     confluence_status_path = "status"
     _res = ctx.obj['connect'].get(confluence_status_path, headers=json_headers)
