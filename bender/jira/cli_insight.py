@@ -21,7 +21,14 @@ def cli_jira_insight(ctx):
     pass
 
 
-@cli_jira_insight.command('path')
+@cli_jira_insight.group('index')
+@click.pass_context
+def cli_jira_insight_index(ctx):
+    """Insight index."""
+    pass
+
+
+@cli_jira_insight_index.command('path')
 @click.pass_context
 def cli_jira_insight_index_path(ctx):
     """Insight index path.
@@ -37,7 +44,7 @@ def cli_jira_insight_index_path(ctx):
     ctx.obj['writer'].out(_res)
 
 
-@cli_jira_insight.command('persist')
+@cli_jira_insight_index.command('persist')
 @click.pass_context
 def cli_jira_insight_index_persist(ctx):
     """Insight index persis.
@@ -53,7 +60,7 @@ def cli_jira_insight_index_persist(ctx):
     ctx.obj['writer'].out(_res)
 
 
-@cli_jira_insight.group('reindex')
+@cli_jira_insight_index.group('reindex')
 @click.pass_context
 def cli_jira_insight_index_reindex(ctx):
     """Insight reindex."""
