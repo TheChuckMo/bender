@@ -1,6 +1,8 @@
 import click
 
-from bender.utils import config, AppConnect, AppWriter, json_headers
+from bender.util.connect import AppConnect
+from bender.util.writer import AppWriter
+from bender import config, json_headers
 
 confluence_config = config['confluence']
 
@@ -20,11 +22,13 @@ def cli(ctx, server, username, password, output):
     if not password:
         password = click.prompt(f'{server} password', hide_input=True, confirmation_prompt=True, show_default=False)
 
-    ctx.obj = {
+    ctx.obj.update({
         'connect': AppConnect(server, username=username, password=password,
                               cookie_store=confluence_config.get('cookie_store')),
-        'writer': AppWriter(output=output, section='confluence')
-    }
+        'writer': AppWriter(output=output, config_section='confluence'),
+        'config': ctx.obj['config']['confluence'],
+        'output': output
+    })
 
 
 @cli.command('status')

@@ -1,12 +1,12 @@
 import click
 
-from bender.utils import json_headers
+from bender import json_headers
 
 
 @click.group('index')
 @click.pass_context
 def cli_jira_index(ctx):
-    """Jira index.
+    """Index management.
 
     \b
     Examples:
@@ -21,7 +21,7 @@ def cli_jira_index(ctx):
 @cli_jira_index.command('state')
 @click.pass_context
 def cli_jira_index_state(ctx):
-    """Jira index state.
+    """Index state.
 
     \b
     Examples:
@@ -38,7 +38,7 @@ def cli_jira_index_state(ctx):
 @click.option('--worklogs/--no-worklogs', default=True, help="reindex work logs")
 @click.pass_context
 def cli_jira_index_reindex(ctx, comments, history, worklogs):
-    """Jira run reindex.
+    """Start a reindex.
 
     \b
     Examples:
@@ -63,7 +63,7 @@ def cli_jira_index_reindex(ctx, comments, history, worklogs):
 @click.option('--id', 'task_id', default=None, help="reindex task id")
 @click.pass_context
 def cli_jira_index_status(ctx, task_id):
-    """Jira reindex status.
+    """Status of reindex task.
 
     Status of last reindex or by task id.
 
@@ -87,7 +87,7 @@ def cli_jira_index_status(ctx, task_id):
 @cli_jira_index.group('analyzer')
 @click.pass_context
 def cli_jira_index_analyzer(ctx):
-    """Jira index analyzer.
+    """Index analyzer.
 
     \b
     Examples:
@@ -100,7 +100,7 @@ def cli_jira_index_analyzer(ctx):
 @cli_jira_index_analyzer.command('state')
 @click.pass_context
 def cli_jira_index_analyzer_state(ctx):
-    """Jira index analyzer state.
+    """Index analyzer state.
 
     \b
     Examples:

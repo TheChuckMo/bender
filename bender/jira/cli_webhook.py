@@ -1,12 +1,12 @@
 import click
 
-from bender.utils import json_headers
+from bender import json_headers
 
 
 @click.group('webhook')
 @click.pass_context
 def cli_jira_webhook(ctx):
-    """Jira webhooks."""
+    """Webhook management."""
     pass
 
 
@@ -14,7 +14,7 @@ def cli_jira_webhook(ctx):
 @click.option('--id', 'webhook_id', default=None, type=str, help="id of webhook.")
 @click.pass_context
 def cli_jira_webhook_get(ctx, webhook_id):
-    """get webhook list or by id.
+    """Get all webhooks or by id.
 
     \b
     Examples:
@@ -34,7 +34,7 @@ def cli_jira_webhook_get(ctx, webhook_id):
 @cli_jira_webhook.command('add')
 @click.pass_context
 def cli_jira_webhook_add(ctx):
-    """add a webhook."""
+    """Add a webhook."""
     jira_webhook_path = "rest/webhooks/1.0/webhook"
     click.echo('not yet implemented')
 
@@ -43,7 +43,7 @@ def cli_jira_webhook_add(ctx):
 @click.option('--id', 'webhook_id', required=True, default=None, type=str, help="id of webhook.")
 @click.pass_context
 def cli_jira_webhook_delete(ctx, webhook_id):
-    """delete a webhook by id.
+    """Delete webhook by id.
 
     \b
     Examples:

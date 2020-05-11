@@ -3,16 +3,13 @@ import os
 
 import click
 
-from bender.utils import config
-from bender.utils import no_check_headers, json_headers
-
-jira_config = config['jira']
+from bender import config, json_headers, no_check_headers
 
 
 @click.group('session')
 @click.pass_context
 def cli_jira_session(ctx):
-    """Jira session management.
+    """User session and cookies.
 
     \b
     Examples:
@@ -84,7 +81,7 @@ def cli_jira_session_cookies(ctx, delete):
     bender jira session cookies --delete
     """
     if delete:
-        if os.unlink(jira_config.get('cookie_store')):
+        if os.unlink(ctx.obj['config'].get('cookie_store')):
             click.secho('cookie store deleted.', fg='blue')
 
     for cookie in ctx.obj['connect'].session.cookies:

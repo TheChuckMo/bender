@@ -1,155 +1,16 @@
 import base64
-import configparser
 import json
 import os
 import pickle
 from json.decoder import JSONDecodeError
-from pprint import pformat
 
-import click
 import requests
-import yaml
-from click import File
-from jsonpath_ng.ext import parse
 from requests.auth import HTTPBasicAuth
-from requests.exceptions import ConnectionError
 from requests_toolbelt.sessions import BaseUrlSession
-
-from bender import APP_DIR, APP_CURRENT_DIR
-
-"""configuration"""
-config_defaults = {
-    'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}',
-    'default_output': 'pretty',
-    'json_indent': '2',
-    'json_sort_keys': 'True',
-    'pprint_indent': '2',
-    'pprint_depth': '4',
-    'yaml_flow_style': 'False'
-}
-config_default_dict = {
-    'jira': {
-        'server': 'http://localhost:8080/',
-        'cookie_store': f'{os.path.join(APP_DIR, ".jira.cookies")}'
-    },
-    'confluence': {
-        'server': 'http://localhost:8000/',
-        'cookie_store': f'{os.path.join(APP_DIR, ".confluence.cookies")}'
-    },
-    'crowd': {
-        'server': 'http://localhost:8095/crowd/',
-        'cookie_store': f'{os.path.join(APP_DIR, ".crowd.cookies")}'
-    },
-    'output': {}
-}
-config_file = os.path.join(APP_DIR, 'bender.cfg')
-local_config_file = os.path.join(APP_CURRENT_DIR, 'bender.cfg')
-
-config = configparser.ConfigParser(config_defaults)
-config.read_dict(config_default_dict)
-config.read(config_file)
-if os.path.isfile(local_config_file):
-    config.read(local_config_file)
-
-json_headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-}
-form_headers = {
-    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-}
-no_check_headers = {
-    'X-Atlassian-Token': 'no-check'
-}
-
-
-class AppWriter:
-    """App Writer"""
-    FORMATS: list = ['pretty', 'json', 'yaml', 'raw']
-    output: str = config['output'].get('default_output')
-    file: File = None
-    section: str = 'output'
-    _json_filter: str = None
-    _data: [list, dict] = None
-
-    def __init__(self, output: str = None, section: str = None):
-        if output:
-            self.output = output
-
-        if section:
-            self.section = section
-
-    def out(self, data: [dict, list], output: str = None, json_filter: str = None, file=None):
-        """write out."""
-        if data:
-            self.data = data
-
-        if json_filter:
-            self.json_filter = json_filter
-
-        if output:
-            self.output = output
-
-        if file:
-            self.file = file
-
-        if self.output is 'pretty':
-            click.echo(self.pretty, file=file)
-
-        if self.output is 'json':
-            click.echo(self.json, file=file)
-
-        if self.output is 'yaml':
-            click.echo(self.yaml, file=file)
-
-        if self.output is 'raw':
-            click.echo(self.data, file=file)
-
-    @property
-    def json_filter(self):
-        """Data filter for output."""
-        if self._json_filter:
-            return parse(self._json_filter)
-
-        return False
-
-    @json_filter.setter
-    def json_filter(self, json_filter: str):
-        self._json_filter = json_filter
-
-    @property
-    def data(self):
-        """Data to write."""
-        if self.json_filter:
-            _data = self.json_filter.find(self._data)
-            return _data
-
-        return self._data
-
-    @data.setter
-    def data(self, data: [list, dict] = None):
-        self._data = data
-
-    @property
-    def pretty(self):
-        """data as pretty"""
-        return pformat(self.data, indent=config[self.section].getint('pprint_indent'),
-                       depth=config[self.section].getint('pprint_depth'))
-
-    @property
-    def json(self):
-        """data as json"""
-        return json.dumps(self.data, indent=config[self.section].getint('json_indent'),
-                          sort_keys=config[self.section].getboolean('json_sort_keys'))
-
-    @property
-    def yaml(self):
-        """data as yaml"""
-        return yaml.dump(self.data, default_flow_style=config[self.section].getboolean('yaml_flow_style'))
 
 
 class AppConnect:
-    """App Connection
+    """App connection object.
 
     A wrapper for requests BaseUrlSession to hold Atlassian keys across command runs.
 
@@ -408,28 +269,3 @@ class AppConnect:
         if os.path.isfile(self.cookie_store):
             with open(self.cookie_store, 'rb') as f:
                 self.session.cookies.update(pickle.load(f))
-
-# def write_out(data: [dict, list], output: str = None):
-#     """write formatted data to screen.
-#
-#     Parameters
-#     ----------
-#     data:        dict or list to print.
-#     output:      format to print.
-#        :pprint|yaml|json|raw:
-#     """
-#     if output is None:
-#         output = config['output'].get('default_output')
-#
-#     if output is 'pretty':
-#         pprint(json.dumps(data), indent=config['output'].getint('pprint_indent'),
-#                depth=config['output'].getint('pprint_depth'), stream=None)
-#
-#     if output is 'raw':
-#         click.echo(data)
-#
-#     if output is 'json':
-#         click.echo(json.dumps(data, indent=config['output'].getint('json_indent'),
-#                               sort_keys=config['output'].getboolean('json_sort_keys')))
-#     elif output is 'yaml':
-#         click.echo(yaml.dump(data, default_flow_style=config['output'].getboolean('yaml_flow_style')))

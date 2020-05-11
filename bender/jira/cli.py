@@ -9,7 +9,10 @@ from bender.jira.cli_user import cli_jira_user
 from bender.jira.cli_webhook import cli_jira_webhook
 from bender.jira.cli_email import cli_jira_email
 from bender.jira.cli_insight import cli_jira_insight
-from bender.utils import config, AppConnect, AppWriter, json_headers
+from bender.jira.cli_upm import cli_jira_upm
+from bender.util.connect import AppConnect
+from bender.util.writer import AppWriter
+from bender import config, json_headers
 
 jira_config = config['jira']
 
@@ -32,21 +35,23 @@ def cli(ctx, server, username, password, output):
 
     bender jira --username juser1 --password 'secret' --server http://localhost:8080 status
     """
+    click.secho(f'server: {server}')
     if not password:
-        password = click.prompt(f'{server} password', hide_input=True, confirmation_prompt=True, show_default=False)
+        password = click.prompt(f'{username} password', hide_input=True, confirmation_prompt=True, show_default=False)
 
-    ctx.obj = {
+    ctx.obj.update({
         'connect': AppConnect(server, username=username, password=password,
-                              cookie_store=jira_config.get('cookie_store')),
-        'writer': AppWriter(output=output, section='jira'),
+                              cookie_store=ctx.obj['config']['jira'].get('cookie_store')),
+        'writer': AppWriter(output=output, config_section='jira'),
+        'config': ctx.obj['config']['jira'],
         'output': output
-    }
+    })
 
 
 @cli.command('status')
 @click.pass_context
 def cli_jira_status(ctx):
-    """Jira application status (read only)."""
+    """Application Status (read only)."""
     jira_status_path = "status"
     _res = ctx.obj['connect'].get(jira_status_path, headers=json_headers, auth=False)
     ctx.obj['writer'].out(_res)
@@ -55,17 +60,17 @@ def cli_jira_status(ctx):
 @cli.command('configuration')
 @click.pass_context
 def cli_jira_configuration(ctx):
-    """Jira server configuration (read only)."""
+    """Show server configuration (read only)."""
     jira_configuration_path = "/rest/api/2/configuration"
     _res = ctx.obj['connect'].get(jira_configuration_path, headers=json_headers, auth=True)
     ctx.obj['writer'].out(_res)
 
 
-@cli.command('baseUrl')
+@cli.command('baseUrl', no_args_is_help=True)
 @click.argument('value', type=str, required=True)
 @click.pass_context
 def cli_jira_baseurl(ctx, value):
-    """Set Jira baseUrl.
+    """Set baseUrl.
 
     value       baseUrl to set
 
@@ -83,7 +88,7 @@ def cli_jira_baseurl(ctx, value):
 @click.option('--health-check', '-h', is_flag=True, default=False, help="run a health check")
 @click.pass_context
 def cli_jira_serverinfo(ctx, health_check):
-    """Jira server information and health-check.
+    """Server information and health-check.
 
     \b
     Examples:
@@ -107,3 +112,4 @@ cli.add_command(cli_jira_webhook)
 cli.add_command(cli_jira_session)
 cli.add_command(cli_jira_user)
 cli.add_command(cli_jira_insight)
+cli.add_command(cli_jira_upm)

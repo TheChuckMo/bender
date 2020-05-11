@@ -1,3 +1,6 @@
-from .cli import cli
+from bender.cli import cli
+from bender import config
 
-cli(obj={})
+_obj: dict = {'config': config}
+
+cli(_obj)

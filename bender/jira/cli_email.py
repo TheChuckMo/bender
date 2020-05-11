@@ -1,12 +1,12 @@
 import click
 
-from bender.utils import json_headers, no_check_headers, form_headers
+from bender import json_headers, form_headers, no_check_headers
 
 
 @click.group('email')
 @click.pass_context
 def cli_jira_email(ctx):
-    """Jira email system."""
+    """Email processor and puller."""
     pass
 
 

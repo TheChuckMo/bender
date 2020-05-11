@@ -1,17 +1,21 @@
 import click
 
-from bender.utils import json_headers
+from bender import json_headers
 
 
 @click.group('cluster')
 @click.pass_context
 def cli_jira_cluster(ctx):
-    """Jira cluster.
+    """Manage cluster.
 
     \b
     Examples:
     bender jira cluster state
     bender jira cluster node
+    bender jira cluster upgrade start
+    bender jira cluster upgrade retry
+    bender jira cluster upgrade cancel
+    bender jira cluster upgrade approve
     """
     pass
 
@@ -19,7 +23,7 @@ def cli_jira_cluster(ctx):
 @cli_jira_cluster.command('state')
 @click.pass_context
 def cli_jira_cluster_state(ctx):
-    """Jira cluster state.
+    """Cluster state.
 
     \b
     Examples:
@@ -33,7 +37,7 @@ def cli_jira_cluster_state(ctx):
 @cli_jira_cluster.group('upgrade')
 @click.pass_context
 def cli_jira_cluster_upgrade(ctx):
-    """Manage Jira Cluster upgrade.
+    """Cluster upgrade.
 
     \b
     Examples:
@@ -88,7 +92,7 @@ def cli_jira_cluster_upgrade_retry(ctx):
 @cli_jira_cluster.group('node')
 @click.pass_context
 def cli_jira_cluster_node(ctx):
-    """Jira cluster nodes.
+    """Cluster nodes.
 
     \b
     Examples:
@@ -100,7 +104,7 @@ def cli_jira_cluster_node(ctx):
 @cli_jira_cluster_node.command('state')
 @click.pass_context
 def cli_jira_cluster_node_state(ctx):
-    """Jira cluster nodes.
+    """Cluster nodes state.
 
     \b
     Examples:
@@ -116,7 +120,7 @@ def cli_jira_cluster_node_state(ctx):
 @click.argument('nodeid', type=str, required=True)
 @click.pass_context
 def cli_jira_cluster_node_offline(ctx, nodeid):
-    """Make cluster node as offline.
+    """*DANGER* Mark cluster node as offline.
 
     Probably shouldn't be used unless support suggests it or no other option.
 
@@ -133,7 +137,7 @@ def cli_jira_cluster_node_offline(ctx, nodeid):
 @click.confirmation_option(prompt='DANGER!!!! - Are you sure you want to delete a node?')
 @click.pass_context
 def cli_jira_cluster_node_delete(ctx, nodeid):
-    """Delete node in cluster.
+    """*DANGER* Delete node from cluster.
 
     Probably shouldn't be used unless support suggests it or no other option.
 

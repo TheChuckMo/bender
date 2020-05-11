@@ -23,7 +23,9 @@ bender/jira/cli_authconfig.py
 bender/jira/cli_cluster.py
 bender/jira/cli_email.py
 bender/jira/cli_index.py
+bender/jira/cli_insight.py
 bender/jira/cli_property.py
 bender/jira/cli_session.py
+bender/jira/cli_upm.py
 bender/jira/cli_user.py
 bender/jira/cli_webhook.py

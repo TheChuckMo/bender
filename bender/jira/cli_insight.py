@@ -1,6 +1,6 @@
 import click
 
-from bender.utils import json_headers
+from bender import json_headers
 
 
 @click.group('insight')

@@ -2,18 +2,20 @@ import os
 
 import click
 
-from bender import APP_VERSION, APP_NAME
+from bender import APP_VERSION, APP_NAME, config_file, local_config_file, config
 from bender.confluence.cli import cli as confluence_cli
 from bender.crowd.cli import cli as crowd_cli
 from bender.jira.cli import cli as jira_cli
-from bender.utils import config, config_file, local_config_file
 
 
 @click.group('cli')
 @click.version_option(f'{APP_VERSION}', prog_name=APP_NAME)
-def cli():
+@click.pass_context
+def cli(ctx):
     """Bending Atlassian to its will since 2020!"""
-    pass
+    ctx.obj = {
+        'config': config
+    }
 
 
 @cli.command('config', no_args_is_help=True)

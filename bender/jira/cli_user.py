@@ -2,14 +2,14 @@ import json
 
 import click
 
-from bender.utils import json_headers
+from bender import json_headers
 
 
 @click.group('user')
 @click.argument('name', default=None, type=str, required=True)
 @click.pass_context
 def cli_jira_user(ctx, name):
-    """Jira user.
+    """User management.
 
     name    Jira user name.
 
