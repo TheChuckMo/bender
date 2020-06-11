@@ -9,7 +9,7 @@ from bender.jira.cli_user import cli_jira_user
 from bender.jira.cli_webhook import cli_jira_webhook
 from bender.jira.cli_email import cli_jira_email
 from bender.jira.cli_insight import cli_jira_insight
-from bender.jira.cli_upm import cli_jira_upm
+from bender.jira.cli_plugin import cli_jira_plugins
 from bender.util.connect import AppConnect
 from bender.util.writer import AppWriter
 from bender import config, json_headers
@@ -112,4 +112,4 @@ cli.add_command(cli_jira_webhook)
 cli.add_command(cli_jira_session)
 cli.add_command(cli_jira_user)
 cli.add_command(cli_jira_insight)
-cli.add_command(cli_jira_upm)
+cli.add_command(cli_jira_plugins)

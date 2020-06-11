@@ -7,15 +7,15 @@ import pkg_resources
 __VERSION__ = '0.7.3'
 
 """bender constants"""
-APP_NAME = 'bender'
+__APP_NAME__ = 'bender'
 
-APP_DIR = click.get_app_dir(APP_NAME)
-if not os.path.isdir(APP_DIR):
-    os.mkdir(APP_DIR)
+__APP_DIR__ = click.get_app_dir(__APP_NAME__)
+if not os.path.isdir(__APP_DIR__):
+    os.mkdir(__APP_DIR__)
 
 APP_CURRENT_DIR = os.getcwd()
 
-APP_VERSION = pkg_resources.get_distribution(APP_NAME).version
+APP_VERSION = pkg_resources.get_distribution(__APP_NAME__).version
 
 """default json headers"""
 json_headers = {
@@ -33,7 +33,7 @@ no_check_headers = {
 
 """bender configuration"""
 config_defaults = {
-    'cookie_store': f'{os.path.join(APP_DIR, ".cookies")}',
+    'cookie_store': f'{os.path.join(__APP_DIR__, ".cookies")}',
     'default_output': 'pretty',
     'json_indent': '2',
     'json_sort_keys': 'True',
@@ -45,20 +45,20 @@ config_defaults = {
 config_default_dict = {
     'jira': {
         'server': 'http://localhost:8080/',
-        'cookie_store': f'{os.path.join(APP_DIR, ".jira.cookies")}'
+        'cookie_store': f'{os.path.join(__APP_DIR__, ".jira.cookies")}'
     },
     'confluence': {
         'server': 'http://localhost:8000/',
-        'cookie_store': f'{os.path.join(APP_DIR, ".confluence.cookies")}'
+        'cookie_store': f'{os.path.join(__APP_DIR__, ".confluence.cookies")}'
     },
     'crowd': {
         'server': 'http://localhost:8095/crowd/',
-        'cookie_store': f'{os.path.join(APP_DIR, ".crowd.cookies")}'
+        'cookie_store': f'{os.path.join(__APP_DIR__, ".crowd.cookies")}'
     },
     'output': {}
 }
 
-config_file = os.path.join(APP_DIR, 'bender.cfg')
+config_file = os.path.join(__APP_DIR__, 'bender.cfg')
 
 local_config_file = os.path.join(APP_CURRENT_DIR, 'bender.cfg')
 
